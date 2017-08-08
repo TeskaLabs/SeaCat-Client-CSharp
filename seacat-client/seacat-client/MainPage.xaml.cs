@@ -12,6 +12,10 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using seacat_core_bridge;
+using Windows.Storage;
+using Windows.ApplicationModel;
+using System.Reflection;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
 
@@ -22,12 +26,22 @@ namespace seacat_client
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        private CoreAPI coreAPI;
+        private SeacatBridge seacatBridge;
+
         public MainPage()
         {
             this.InitializeComponent();
-
             this.NavigationCacheMode = NavigationCacheMode.Required;
-           
+
+            coreAPI = new CoreAPI();
+            seacatBridge = new SeacatBridge();
+
+            StorageFolder local = Windows.Storage.ApplicationData.Current.LocalFolder;
+            Package package = Package.Current;
+
+            seacatBridge.init((ISeacatCoreAPI)coreAPI, package.Id.Name, "dev", "WM8", 
+                local.Path + "\\core"); // subdir must be specified since the core api adds a suffix to it
         }
 
         /// <summary>

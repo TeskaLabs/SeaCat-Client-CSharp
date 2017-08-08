@@ -4,15 +4,15 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Foundation.Metadata;
 
 namespace seacat_client
 {
     public class CoreAPI : seacat_core_bridge.ISeacatCoreAPI
     {
-        public void LogMessage(IntPtr message)
+        public void LogMessage(string message)
         {
-            string msgStr = Marshal.PtrToStringAnsi(message);
-            System.Diagnostics.Debug.WriteLine(msgStr);
+            System.Diagnostics.Debug.WriteLine(message);
         }
     }
 }

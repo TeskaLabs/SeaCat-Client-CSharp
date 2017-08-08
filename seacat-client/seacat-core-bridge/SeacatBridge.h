@@ -2,10 +2,13 @@
 
 namespace seacat_core_bridge
 {
+	using namespace Platform;
+
+	[Windows::Foundation::Metadata::WebHostHidden]
 	public interface class ISeacatCoreAPI
 	{
 	public:
-		virtual void LogMessage(Platform::IntPtr message);
+		virtual void LogMessage(Platform::String^ message);
 	};
 
 	public ref class SeacatBridge sealed
@@ -13,6 +16,6 @@ namespace seacat_core_bridge
 	public:
 		SeacatBridge();
 
-		void init(ISeacatCoreAPI^ coreAPI);
+		void init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuffix, String^ platform, String^ varDirChar);
 	};
 }
