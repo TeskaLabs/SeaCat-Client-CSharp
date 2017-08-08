@@ -27,9 +27,7 @@ namespace seacat_client
             this.InitializeComponent();
 
             this.NavigationCacheMode = NavigationCacheMode.Required;
-
-            int mojo = seacat_core_bridge.Class1.test();
-            mojo++;
+           
         }
 
         /// <summary>
