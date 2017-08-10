@@ -9,6 +9,8 @@ namespace seacat_core_bridge
 	{
 	public:
 		virtual void LogMessage(char16 level, Platform::String^ message);
+
+		virtual void CallbackWorkerRequest(char16 worker);
 	};
 
 	public ref class SeacatBridge sealed

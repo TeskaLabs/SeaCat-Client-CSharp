@@ -18,23 +18,23 @@ using seacat_wp_client;
 namespace seacat_wp_client
 {
 
-    public class SeacatClient
+    public class Reactor
     {
 
-        private static SeacatClient _instance;
+        private static Reactor _instance;
 
-        private SeacatClient()
+        private Reactor()
         {
 
         }
 
-        public static SeacatClient Instance
+        public static Reactor Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    _instance = new SeacatClient();
+                    _instance = new Reactor();
                 }
 
                 return _instance;
@@ -61,8 +61,8 @@ namespace seacat_wp_client
             StorageFolder local = Windows.Storage.ApplicationData.Current.LocalFolder;
             Package package = Package.Current;
 
-            int rc = Bridge.init((ISeacatCoreAPI)CoreAPI, package.Id.Name, "dev", "WM8",
-                local.Path + "\\core"); // subdir must be specified since the core api adds a suffix to it
+            int rc = Bridge.init((ISeacatCoreAPI)CoreAPI, package.Id.Name, "dev", "win",
+                local.Path + "\\.seacat"); // subdir must be specified since the core api adds a suffix to it
 
             RC.CheckAndThrowIOException("seacatcc.init", rc);
 
@@ -128,7 +128,7 @@ namespace seacat_wp_client
 
         static String packageName = null;
 
-        
+
         public void Shutdown()
         {
             int rc = Bridge.shutdown();
@@ -159,7 +159,7 @@ namespace seacat_wp_client
 
         private static void _run()
         {
-            int rc = SeacatClient.Instance.Bridge.run();
+            int rc = Reactor.Instance.Bridge.run();
             if (rc != RC.RC_OK)
                 System.Diagnostics.Debug.WriteLine(String.Format("return code %d in %s", rc, "seacatcc.run"));
         }
@@ -188,7 +188,7 @@ namespace seacat_wp_client
             RC.CheckAndThrowIOException("seacatcc.yield", rc);
         }
 
-        
+
         public void BroadcastState()
         {
             /* MTODO
@@ -263,7 +263,23 @@ namespace seacat_wp_client
 
         public static void SetPackageName(String packageName)
         {
-            SeacatClient.packageName = packageName;
+            Reactor.packageName = packageName;
+        }
+
+        public void CallbackWorkerRequest(char worker)
+        {
+            switch (worker)
+            {
+                case 'P':
+                    new Task(() => Bridge.ppkgen_worker()).Start();
+                    break;
+                case 'C':
+                    System.Diagnostics.Debug.WriteLine("CSR worker requested");
+                    break;
+                default:
+                    System.Diagnostics.Debug.WriteLine(String.Format("Unknown worker requested %c", worker));
+                    break;
+            }
         }
     }
 }

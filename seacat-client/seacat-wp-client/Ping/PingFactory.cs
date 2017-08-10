@@ -18,7 +18,7 @@ namespace seacat_wp_client.Ping
         private Dictionary<int, Ping> waitingPingDict = new Dictionary<int, Ping>();
 
 
-        public void Ping(SeacatClient reactor, Ping ping)
+        public void Ping(Reactor reactor, Ping ping)
         {
             lock (this)
             {
@@ -71,7 +71,7 @@ namespace seacat_wp_client.Ping
 
 
 
-        public FrameResult BuildFrame(SeacatClient reactor)
+        public FrameResult BuildFrame(Reactor reactor)
         {
             lock (this)
             {
@@ -99,7 +99,7 @@ namespace seacat_wp_client.Ping
         }
 
 
-        public bool ReceivedControlFrame(SeacatClient reactor, ByteBuffer frame, int frameVersionType, int frameLength, byte frameFlags)
+        public bool ReceivedControlFrame(Reactor reactor, ByteBuffer frame, int frameVersionType, int frameLength, byte frameFlags)
         {
             lock (this)
             {

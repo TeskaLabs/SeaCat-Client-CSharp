@@ -93,11 +93,12 @@
     <Compile Include="Core\CoreAPI.cs" />
     <Compile Include="Core\FramePool.cs" />
     <Compile Include="Core\StreamFactory.cs" />
+    <Compile Include="Http\SeacatHttpHandler.cs" />
     <Compile Include="Ping\Ping.cs" />
     <Compile Include="Ping\PingFactory.cs" />
     <Compile Include="Ping\Pong.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SeacatClient.cs" />
+    <Compile Include="Reactor.cs" />
     <Compile Include="Utils\BlockingQueue.cs" />
     <Compile Include="Utils\ByteBuffer.cs" />
     <Compile Include="Utils\IntegerCounter.cs" />

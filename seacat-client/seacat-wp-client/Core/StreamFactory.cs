@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -66,7 +67,7 @@ namespace seacat_wp_client.Core
         }
 
 
-        protected bool ReceivedALX1_SYN_REPLY(SeacatClient reactor, ByteBuffer frame, int frameLength, byte frameFlags)
+        protected bool ReceivedALX1_SYN_REPLY(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags)
         {
             int streamId = frame.ReadInt32();
             IStream stream = GetStream(streamId);
@@ -77,7 +78,7 @@ namespace seacat_wp_client.Core
                 SendRST_STREAM(frame, reactor, streamId, SPDY.RST_STREAM_STATUS_INVALID_STREAM);
                 return false;
             }
-
+            
 
             bool ret = stream.ReceivedALX1_SYN_REPLY(reactor, frame, frameLength, frameFlags);
 
@@ -88,7 +89,7 @@ namespace seacat_wp_client.Core
         }
 
 
-        protected bool ReceivedSPD3_RST_STREAM(SeacatClient reactor, ByteBuffer frame, int frameLength, byte frameFlags)
+        protected bool ReceivedSPD3_RST_STREAM(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags)
         {
             int streamId = frame.ReadInt32();
             IStream stream = GetStream(streamId);
@@ -107,7 +108,7 @@ namespace seacat_wp_client.Core
         }
 
 
-        public bool ReceivedDataFrame(SeacatClient reactor, ByteBuffer frame)
+        public bool ReceivedDataFrame(Reactor reactor, ByteBuffer frame)
         {
             int streamId = frame.ReadInt32();
             IStream stream = GetStream(streamId);
@@ -130,7 +131,7 @@ namespace seacat_wp_client.Core
             return ret;
         }
 
-        public bool ReceivedControlFrame(SeacatClient reactor, ByteBuffer frame, int frameVersionType, int frameLength, byte frameFlags)
+        public bool ReceivedControlFrame(Reactor reactor, ByteBuffer frame, int frameVersionType, int frameLength, byte frameFlags)
         {
             // Dispatch control frame
             if (frameVersionType == ((SPDY.CNTL_FRAME_VERSION_ALX1 << 16) | SPDY.CNTL_TYPE_SYN_REPLY)){
@@ -147,7 +148,7 @@ namespace seacat_wp_client.Core
 
         ///
 
-        public void SendRST_STREAM(ByteBuffer frame, SeacatClient reactor, int streamId, int statusCode)
+        public void SendRST_STREAM(ByteBuffer frame, Reactor reactor, int streamId, int statusCode)
         {
             SPDY.buildSPD3RstStream(frame, streamId, statusCode);
             try
@@ -161,13 +162,13 @@ namespace seacat_wp_client.Core
             }
         }
 
-        private void AddOutboundFrame(ByteBuffer frame, SeacatClient reactor)
+        private void AddOutboundFrame(ByteBuffer frame, Reactor reactor)
         {
             outboundFrameQueue.Enqueue(frame);
             reactor.RegisterFrameProvider(this, true);
         }
 
-        public FrameResult BuildFrame(SeacatClient reactor)
+        public FrameResult BuildFrame(Reactor reactor)
         {
             bool keep;
             ByteBuffer frame;

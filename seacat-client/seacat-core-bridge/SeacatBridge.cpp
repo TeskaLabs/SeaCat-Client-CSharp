@@ -40,11 +40,13 @@ static void callback_frame_return(void * data) {
 }
 
 static void callback_worker_request(char worker) {
+	char16 workerChr = worker;
 
+	coreAPI->CallbackWorkerRequest(workerChr);
 }
 
 static double callback_evloop_heartbeat(double now) {
-	return 0;
+	return 1;
 }
 
 
@@ -88,9 +90,14 @@ int SeacatBridge::init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuff
 	auto platformCst = ConstCharFromString(platform)->c_str();
 	auto varDirCharCst = ConstCharFromString(varDirChar)->c_str();
 
+	auto locMask = seacatcc_log_mask_u();
+	locMask.value = 1;
+
+	seacatcc_log_set_mask(locMask);
 	seacatcc_log_setfnct(&logMsgManaged);
 
-	int rc = seacatcc_init(appIdCst, appIdSuffixCst, platformCst, varDirCharCst,
+
+	int rc = seacatcc_init("mobi.seacat.test", NULL, platformCst, varDirCharCst,
 		callback_write_ready,
 		callback_read_ready,
 		callback_frame_received,
@@ -161,6 +168,7 @@ int SeacatBridge::set_proxy_server_worker(String^ proxy_host, String^ proxy_port
 	const char * proxyHostChar = ConstCharFromString(proxy_host)->c_str();
 	const char * proxyPortChar = ConstCharFromString(proxy_port)->c_str();
 	int rc = seacatcc_set_proxy_server_worker(proxyHostChar, proxyPortChar);
+	
 	return rc;
 }
 

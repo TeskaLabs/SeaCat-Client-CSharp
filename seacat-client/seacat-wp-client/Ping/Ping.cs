@@ -13,7 +13,7 @@ namespace seacat_wp_client.Ping
         protected Ping()
         {
             PingId = -1;
-            deadline = SeacatClient.Instance.Bridge.time() + 60.0;
+            deadline = Reactor.Instance.Bridge.time() + 60.0;
         }
 
         public int PingId { get; set; }

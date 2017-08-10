@@ -16,6 +16,7 @@ using Windows.Storage;
 using Windows.ApplicationModel;
 using System.Reflection;
 using seacat_wp_client;
+using System.Net.Http;
 
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
@@ -27,14 +28,14 @@ namespace seacat_client
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private SeacatClient seacatClient;
+        private Reactor seacatClient;
 
         public MainPage()
         {
             this.InitializeComponent();
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
-            seacatClient = SeacatClient.Instance;
+            seacatClient = Reactor.Instance;
             seacatClient.Init();
         }
 

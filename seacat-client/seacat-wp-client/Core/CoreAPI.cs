@@ -15,5 +15,10 @@ namespace seacat_wp_client
             System.Diagnostics.Debug.WriteLine(message);
         }
 
+        public void CallbackWorkerRequest(char worker)
+        {
+            Reactor.Instance.CallbackWorkerRequest(worker);
+        }
+
     }
 }
