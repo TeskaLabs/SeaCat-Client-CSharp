@@ -81,12 +81,12 @@ SeacatBridge::SeacatBridge()
 	bridge = this;
 }
 
-void SeacatBridge::init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuffix, String^ platform, String^ varDirChar) {
+int SeacatBridge::init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuffix, String^ platform, String^ varDirChar) {
 	::coreAPI = coreAPI;
-	auto appIdCst = ConstCharFromString(appId).c_str();
-	auto appIdSuffixCst = ConstCharFromString(appIdSuffix).c_str();
-	auto platformCst = ConstCharFromString(platform).c_str();
-	auto varDirCharCst = ConstCharFromString(varDirChar).c_str();
+	auto appIdCst = ConstCharFromString(appId)->c_str();
+	auto appIdSuffixCst = ConstCharFromString(appIdSuffix)->c_str();
+	auto platformCst = ConstCharFromString(platform)->c_str();
+	auto varDirCharCst = ConstCharFromString(varDirChar)->c_str();
 
 	seacatcc_log_setfnct(&logMsgManaged);
 
@@ -112,7 +112,7 @@ void SeacatBridge::init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuf
 	rc = seacatcc_hook_register('i', callback_clientid_changed);
 	assert(rc == SEACATCC_RC_OK);
 
-	seacatcc_run();
+	return rc;
 }
 
 int SeacatBridge::run() {
@@ -146,8 +146,9 @@ int SeacatBridge::csrgen_worker(const Platform::Array<String^>^  params) {
 
 	for (i = 0; i<paramCount; i++)
 	{
-		csr_entries[i] = ConstCharFromString(params[i]).c_str();
+		csr_entries[i] = ConstCharFromString(params[i])->c_str();
 	}
+
 	csr_entries[paramCount] = NULL;
 
 	rc = seacatcc_csrgen_worker(csr_entries);
@@ -157,8 +158,8 @@ int SeacatBridge::csrgen_worker(const Platform::Array<String^>^  params) {
 }
 
 int SeacatBridge::set_proxy_server_worker(String^ proxy_host, String^ proxy_port) {
-	const char * proxyHostChar = ConstCharFromString(proxy_host).c_str();
-	const char * proxyPortChar = ConstCharFromString(proxy_port).c_str();
+	const char * proxyHostChar = ConstCharFromString(proxy_host)->c_str();
+	const char * proxyPortChar = ConstCharFromString(proxy_port)->c_str();
 	int rc = seacatcc_set_proxy_server_worker(proxyHostChar, proxyPortChar);
 	return rc;
 }
@@ -200,8 +201,8 @@ int SeacatBridge::socket_configure_worker(int port, char16 domain, char16 type, 
 		return SEACATCC_RC_E_INVALID_ARGS;
 	}
 
-	const char * peerAddressChar = ConstCharFromString(peer_address).c_str();
-	const char * peerPortChar = ConstCharFromString(peer_port).c_str();
+	const char * peerAddressChar = ConstCharFromString(peer_address)->c_str();
+	const char * peerPortChar = ConstCharFromString(peer_port)->c_str();
 	int rc = seacatcc_socket_configure_worker(port, domain_int, sock_type_int, protocol, peerAddressChar, peerPortChar);
 
 	return rc;

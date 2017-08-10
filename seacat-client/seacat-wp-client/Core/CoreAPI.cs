@@ -14,5 +14,6 @@ namespace seacat_wp_client
         {
             System.Diagnostics.Debug.WriteLine(message);
         }
+
     }
 }

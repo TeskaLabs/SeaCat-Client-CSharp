@@ -1,4 +1,5 @@
-﻿using System;
+﻿using seacat_wp_client.Communication;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,11 @@ namespace seacat_wp_client.Utils
         public bool IsEmpty()
         {
             return _queue.Items.Count == 0;
+        }
+
+        public bool Contains(T item)
+        {
+            return _queue.Items.Contains(item);
         }
 
         public bool Enqueue(T item)

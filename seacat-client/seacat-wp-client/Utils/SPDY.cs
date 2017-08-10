@@ -35,44 +35,38 @@ namespace seacat_wp_client.Utils
 
         ///
 
-        public static void buildSPD3Ping(MemoryStream frame, int pingId)
+        public static void buildSPD3Ping(ByteBuffer frame, int pingId)
         {
-            using(BinaryWriter wr = new BinaryWriter(frame))
-            {
-                // It is SPDY v3 control frame 
-                wr.Write((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
+            // It is SPDY v3 control frame 
+            frame.Write((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
 
-                // Type
-                wr.Write(CNTL_TYPE_PING);
+            // Type
+            frame.Write(CNTL_TYPE_PING);
 
-                // Flags and length
-                wr.Write(4);
+            // Flags and length
+            frame.Write(4);
 
-                // Ping ID
-                wr.Write(pingId);
-            }
+            // Ping ID
+            frame.Write(pingId);
         }
 
 
-        public static void buildSPD3RstStream(MemoryStream frame, int streamId, int statusCode)
+        public static void buildSPD3RstStream(ByteBuffer frame, int streamId, int statusCode)
         {
-            using (BinaryWriter wr = new BinaryWriter(frame))
-            {
-                // It is SPDY v3 control frame 
-                wr.Write((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
+            // It is SPDY v3 control frame 
+            frame.Write((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
 
-                // Type
-                wr.Write(CNTL_TYPE_RST_STREAM);
+            // Type
+            frame.Write(CNTL_TYPE_RST_STREAM);
 
-                // Flags and length
-                wr.Write(8);
+            // Flags and length
+            frame.Write(8);
 
-                // Stream ID
-                wr.Write(streamId);
+            // Stream ID
+            frame.Write(streamId);
 
-                // Status Code
-                wr.Write(statusCode);
-            }
+            // Status Code
+            frame.Write(statusCode);
         }
         /*
         public static void buildALX1SynStream(BinaryWriter buffer, int streamId, Url url, String method, Headers headers, bool fin_flag, int priority)

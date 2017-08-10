@@ -17,6 +17,7 @@ using Windows.ApplicationModel;
 using System.Reflection;
 using seacat_wp_client;
 
+
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
 
 namespace seacat_client

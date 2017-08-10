@@ -1,4 +1,5 @@
-﻿using System;
+﻿using seacat_wp_client.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,10 +10,10 @@ namespace seacat_wp_client.Communication
 {
     public class FrameResult
     {
-        public MemoryStream frame;
+        public ByteBuffer frame;
 		public bool keep;
 
-		public FrameResult(MemoryStream frame, bool keep)
+		public FrameResult(ByteBuffer frame, bool keep)
         {
             this.frame = frame;
             this.keep = keep;

@@ -69,7 +69,7 @@
   <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsPhoneSDK_IncludePath);C:\__DATACORE\WorkProjects\TESKALABS\SeaCat-Client-Core\src</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsPhoneSDK_LibraryPath_x86);$(ProjectDir)/Libs</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsPhoneSDK_LibraryPath_x86);$(ProjectDir)/Libs;C:\__DATACORE\WorkProjects\TESKALABS\SeaCat-Client-Core\Debug\wp81</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
   </PropertyGroup>

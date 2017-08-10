@@ -16,7 +16,7 @@ namespace seacat_core_bridge
 	public:
 		SeacatBridge();
 
-		void init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuffix, String^ platform, String^ varDirChar);
+		int init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuffix, String^ platform, String^ varDirChar);
 
 		int run();
 

@@ -22,8 +22,7 @@ String^ StringFromAscIIChars(const char* chars)
 	return str;
 }
 
-std::string ConstCharFromString(String^ str) {
+std::string* ConstCharFromString(String^ str) {
 	std::wstring wstr(str->Begin());
-	std::string sstr(wstr.begin(), wstr.end());
-	return sstr;
+	return new std::string (wstr.begin(), wstr.end());
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using seacat_wp_client.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace seacat_wp_client.Core
 {
     public class FramePool
     {
-        private Stack<MemoryStream> stack = new Stack<MemoryStream>();
+        private Stack<ByteBuffer> stack = new Stack<ByteBuffer>();
         private int lowWaterMark;
         private int highWaterMark;
         private int frameCapacity;
@@ -41,9 +42,9 @@ namespace seacat_wp_client.Core
         }
 
 
-        public MemoryStream Borrow(String reason)
+        public ByteBuffer Borrow(String reason)
         {
-            MemoryStream frame;
+            ByteBuffer frame;
             try
 
             {
@@ -64,17 +65,17 @@ namespace seacat_wp_client.Core
         }
 
         
-        public void GiveBack(MemoryStream frame)
+        public void GiveBack(ByteBuffer frame)
         {
             if (totalCount > lowWaterMark)
             {
-                frame = new MemoryStream(frameCapacity);
+                frame.Clear();
                 Interlocked.Decrement(ref totalCount);
                 // Discard frame
             }
             else
             {
-                frame = new MemoryStream(frameCapacity);
+                frame.Clear();
                 lock (stack)
             {
                     stack.Push(frame);
@@ -83,12 +84,12 @@ namespace seacat_wp_client.Core
         }
 
 
-        private MemoryStream CreateByteBuffer()
+        private ByteBuffer CreateByteBuffer()
         {
             lock (this)
             {
                 Interlocked.Increment(ref totalCount);
-                MemoryStream frame = new MemoryStream(frameCapacity);
+                ByteBuffer frame = new ByteBuffer(frameCapacity);
                 return frame;
             }
         }

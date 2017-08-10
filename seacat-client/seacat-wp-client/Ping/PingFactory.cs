@@ -18,7 +18,7 @@ namespace seacat_wp_client.Ping
         private Dictionary<int, Ping> waitingPingDict = new Dictionary<int, Ping>();
 
 
-        public void Ping(Reactor reactor, Ping ping)
+        public void Ping(SeacatClient reactor, Ping ping)
         {
             lock (this)
             {
@@ -71,11 +71,11 @@ namespace seacat_wp_client.Ping
 
 
 
-        public FrameResult BuildFrame(Reactor reactor)
+        public FrameResult BuildFrame(SeacatClient reactor)
         {
             lock (this)
             {
-                MemoryStream frame = null;
+                ByteBuffer frame = null;
 
                 //Integer pingId
                 Ping ping = outboundPingQueue.Dequeue();
@@ -99,7 +99,7 @@ namespace seacat_wp_client.Ping
         }
 
 
-        public bool ReceivedControlFrame(Reactor reactor, BinaryReader frame, int frameVersionType, int frameLength, byte frameFlags)
+        public bool ReceivedControlFrame(SeacatClient reactor, ByteBuffer frame, int frameVersionType, int frameLength, byte frameFlags)
         {
             lock (this)
             {
