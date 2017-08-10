@@ -136,6 +136,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="SCUtils.h" />
     <ClInclude Include="SeacatBridge.h" />
   </ItemGroup>
   <ItemGroup>

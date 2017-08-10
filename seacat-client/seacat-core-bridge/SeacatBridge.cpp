@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "SeacatBridge.h"
 #include <string>
+#include "SCUtils.h"
 
 extern "C" {
 #include "alts/windows/all_windows.h"
@@ -14,25 +15,8 @@ using namespace Platform;
 
 ISeacatCoreAPI^ coreAPI = nullptr;
 
-String^ StringFromAscIIChars(const char* chars)
-{
-	size_t newsize = strlen(chars) + 1;
-	wchar_t * wcstring = new wchar_t[newsize];
-	size_t convertedChars = 0;
-	mbstowcs_s(&convertedChars, wcstring, newsize, chars, _TRUNCATE);
-	String^ str = ref new Platform::String(wcstring);
-	delete[] wcstring;
-	return str;
-}
-
-std::string constCharFromString(String^ str) {
-	std::wstring wstr(str->Begin());
-	std::string sstr(wstr.begin(), wstr.end());
-	return sstr;
-}
-
-void logMsgManaged(const char* message) {
-	coreAPI->LogMessage(StringFromAscIIChars(message));
+void logMsgManaged(char level, const char* message) {
+	coreAPI->LogMessage((int)level, StringFromAscIIChars(message));
 }
 
 static void callback_write_ready(void ** data, uint16_t * data_len) {
@@ -90,7 +74,7 @@ static void callback_clientid_changed(void)
 extern "C" {
 
 	void logMsg(char level, const char * message) {
-		logMsgManaged(message);
+		logMsgManaged(level, message);
 	}
 
 	void initSeacat(const char* appIdChar, const char* appIdSuffixChar, const char* platform, const char* varDirChar) {
@@ -129,5 +113,9 @@ SeacatBridge::SeacatBridge()
 
 void SeacatBridge::init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuffix, String^ platform, String^ varDirChar) {
 	::coreAPI = coreAPI;
-	initSeacat(constCharFromString(appId).c_str(), constCharFromString(appIdSuffix).c_str(), constCharFromString(platform).c_str(), constCharFromString(varDirChar).c_str());
+	auto appIdCst = ConstCharFromString(appId).c_str();
+	auto appIdSuffixCst = ConstCharFromString(appIdSuffix).c_str();
+	auto platformCst = ConstCharFromString(platform).c_str();
+	auto varDirCharCst = ConstCharFromString(varDirChar).c_str();
+	initSeacat(appIdCst, appIdSuffixCst, platformCst, varDirCharCst);
 }

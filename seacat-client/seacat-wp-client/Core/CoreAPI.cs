@@ -6,11 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation.Metadata;
 
-namespace seacat_client
+namespace seacat_wp_client
 {
     public class CoreAPI : seacat_core_bridge.ISeacatCoreAPI
     {
-        public void LogMessage(string message)
+        public void LogMessage(int level, string message)
         {
             System.Diagnostics.Debug.WriteLine(message);
         }

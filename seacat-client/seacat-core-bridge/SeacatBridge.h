@@ -8,7 +8,7 @@ namespace seacat_core_bridge
 	public interface class ISeacatCoreAPI
 	{
 	public:
-		virtual void LogMessage(Platform::String^ message);
+		virtual void LogMessage(int level, Platform::String^ message);
 	};
 
 	public ref class SeacatBridge sealed
