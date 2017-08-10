@@ -16,12 +16,15 @@ namespace seacat_wp_client.Ping
             deadline = SeacatClient.Instance.Bridge.time() + 60.0;
         }
 
-        public int PingId { get; private set; }
+        public int PingId { get; set; }
 
         public bool IsExpired(double now)
         {
             return now >= deadline;
         }
+
+        public void Pong() { }
+        public void Cancel() { }
     }
 
 }

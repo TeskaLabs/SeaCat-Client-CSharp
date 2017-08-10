@@ -86,10 +86,22 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Communication\FrameResult.cs" />
+    <Compile Include="Communication\IFrameConsumer.cs" />
+    <Compile Include="Communication\IFrameProvider.cs" />
+    <Compile Include="Communication\IStream.cs" />
     <Compile Include="Core\CoreAPI.cs" />
+    <Compile Include="Core\FramePool.cs" />
+    <Compile Include="Core\Reactor.cs" />
     <Compile Include="Ping\Ping.cs" />
+    <Compile Include="Ping\PingFactory.cs" />
+    <Compile Include="Ping\Pong.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SeacatClient.cs" />
+    <Compile Include="Utils\BlockingQueue.cs" />
+    <Compile Include="Utils\IntegerCounter.cs" />
+    <Compile Include="Utils\MemoryStreamExt.cs" />
+    <Compile Include="Utils\SPDY.cs" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
     <VisualStudioVersion>12.0</VisualStudioVersion>
