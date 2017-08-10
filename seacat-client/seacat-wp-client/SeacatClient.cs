@@ -13,18 +13,43 @@ namespace seacat_wp_client
 
     public class SeacatClient
     {
-        private CoreAPI coreAPI;
-        private SeacatBridge seacatBridge;
 
+        private static SeacatClient _instance;
+
+        private SeacatClient()
+        {
+
+        }
+
+        public static SeacatClient Instance
+        {
+            get
+            {
+                if(_instance == null)
+                {
+                    _instance = new SeacatClient();
+                }
+
+                return _instance;
+            }
+        }
+
+        public SeacatBridge Bridge
+        {
+            get;private set;
+        }
+        
+        private CoreAPI coreAPI;
+  
         public void Init()
         {
             coreAPI = new CoreAPI();
-            seacatBridge = new SeacatBridge();
+            Bridge = new SeacatBridge();
 
             StorageFolder local = Windows.Storage.ApplicationData.Current.LocalFolder;
             Package package = Package.Current;
 
-            seacatBridge.init((ISeacatCoreAPI)coreAPI, package.Id.Name, "dev", "WM8",
+            Bridge.init((ISeacatCoreAPI)coreAPI, package.Id.Name, "dev", "WM8",
                 local.Path + "\\core"); // subdir must be specified since the core api adds a suffix to it
         }
     }

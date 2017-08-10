@@ -10,7 +10,7 @@ namespace seacat_wp_client
 {
     public class CoreAPI : seacat_core_bridge.ISeacatCoreAPI
     {
-        public void LogMessage(int level, string message)
+        public void LogMessage(char level, string message)
         {
             System.Diagnostics.Debug.WriteLine(message);
         }

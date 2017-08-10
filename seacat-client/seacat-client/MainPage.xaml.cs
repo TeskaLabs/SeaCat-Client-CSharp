@@ -33,7 +33,7 @@ namespace seacat_client
             this.InitializeComponent();
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
-            seacatClient = new SeacatClient();
+            seacatClient = SeacatClient.Instance;
             seacatClient.Init();
         }
 

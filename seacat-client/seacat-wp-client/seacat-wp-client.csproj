@@ -87,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\CoreAPI.cs" />
+    <Compile Include="Ping\Ping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SeacatClient.cs" />
   </ItemGroup>
