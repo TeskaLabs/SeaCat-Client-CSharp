@@ -90,7 +90,6 @@
     <Compile Include="Communication\IFrameConsumer.cs" />
     <Compile Include="Communication\IFrameProvider.cs" />
     <Compile Include="Communication\IStream.cs" />
-    <Compile Include="Core\CoreAPI.cs" />
     <Compile Include="Core\FramePool.cs" />
     <Compile Include="Core\StreamFactory.cs" />
     <Compile Include="Http\SeacatHttpHandler.cs" />

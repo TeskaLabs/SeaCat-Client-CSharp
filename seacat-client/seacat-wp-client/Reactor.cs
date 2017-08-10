@@ -18,7 +18,7 @@ using seacat_wp_client;
 namespace seacat_wp_client
 {
 
-    public class Reactor
+    public class Reactor : seacat_core_bridge.ISeacatCoreAPI
     {
 
         private static Reactor _instance;
@@ -43,7 +43,6 @@ namespace seacat_wp_client
 
 
         public FramePool FramePool { get; private set; }
-        public CoreAPI CoreAPI { get; private set; }
         public SeacatBridge Bridge { get; private set; }
 
         public void Init()
@@ -55,13 +54,12 @@ namespace seacat_wp_client
 
             //MTODO this.workerExecutor = new ThreadPoolExecutor(0, 1000, 5, TimeUnit.SECONDS, new BlockingQueue<IAsyncResult>());
 
-            CoreAPI = new CoreAPI();
             Bridge = new SeacatBridge();
 
             StorageFolder local = Windows.Storage.ApplicationData.Current.LocalFolder;
             Package package = Package.Current;
 
-            int rc = Bridge.init((ISeacatCoreAPI)CoreAPI, package.Id.Name, "dev", "win",
+            int rc = Bridge.init((ISeacatCoreAPI)this, package.Id.Name, "dev", "win",
                 local.Path + "\\.seacat"); // subdir must be specified since the core api adds a suffix to it
 
             RC.CheckAndThrowIOException("seacatcc.init", rc);
@@ -266,6 +264,13 @@ namespace seacat_wp_client
             Reactor.packageName = packageName;
         }
 
+        // ====== methods called from C++ ====== 
+
+        public void LogMessage(char level, string message)
+        {
+            System.Diagnostics.Debug.WriteLine(message);
+        }
+
         public void CallbackWorkerRequest(char worker)
         {
             switch (worker)
@@ -274,7 +279,7 @@ namespace seacat_wp_client
                     new Task(() => Bridge.ppkgen_worker()).Start();
                     break;
                 case 'C':
-                    Task CSRWorker = CSR.CreateDefault();  
+                    Task CSRWorker = CSR.CreateDefault();
                     if (CSRWorker != null) CSRWorker.Start();
                     break;
                 default:
