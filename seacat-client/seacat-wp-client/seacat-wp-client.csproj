@@ -101,6 +101,7 @@
     <Compile Include="Reactor.cs" />
     <Compile Include="Utils\BlockingQueue.cs" />
     <Compile Include="Utils\ByteBuffer.cs" />
+    <Compile Include="Utils\CSR.cs" />
     <Compile Include="Utils\IntegerCounter.cs" />
     <Compile Include="Utils\RC.cs" />
     <Compile Include="Utils\SPDY.cs" />

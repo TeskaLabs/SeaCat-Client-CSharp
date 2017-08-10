@@ -274,7 +274,8 @@ namespace seacat_wp_client
                     new Task(() => Bridge.ppkgen_worker()).Start();
                     break;
                 case 'C':
-                    System.Diagnostics.Debug.WriteLine("CSR worker requested");
+                    Task CSRWorker = CSR.CreateDefault();  
+                    if (CSRWorker != null) CSRWorker.Start();
                     break;
                 default:
                     System.Diagnostics.Debug.WriteLine(String.Format("Unknown worker requested %c", worker));
