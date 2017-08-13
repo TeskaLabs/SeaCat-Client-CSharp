@@ -1,4 +1,4 @@
-﻿using seacat_wp_client.Communication;
+﻿using seacat_wp_client.Interfaces;
 using seacat_wp_client.Utils;
 using System;
 using System.Collections.Generic;

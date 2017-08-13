@@ -24,19 +24,19 @@ static void logMsgManaged(char level, const char* message) {
 }
 
 static void callback_write_ready(void ** data, uint16_t * data_len) {
-
+	logMsgManaged('M', "CALLBACK:: callback_write_ready");
 }
 
 static void callback_read_ready(void ** data, uint16_t * data_len) {
-
+	logMsgManaged('M', "CALLBACK:: callback_read_ready");
 }
 
 static void callback_frame_received(void * data, uint16_t data_len) {
-
+	logMsgManaged('M', "CALLBACK:: callback_frame_received");
 }
 
 static void callback_frame_return(void * data) {
-
+	logMsgManaged('M', "CALLBACK:: callback_frame_return");
 }
 
 static void callback_worker_request(char worker) {
@@ -53,28 +53,28 @@ static double callback_evloop_heartbeat(double now) {
 // other hooks
 static void callback_evloop_started(void)
 {
-
+	logMsgManaged('M', "CALLBACK:: callback_evloop_started");
 }
 
 
 static void callback_gwconn_reset(void)
 {
-
+	logMsgManaged('M', "CALLBACK:: callback_gwconn_reset");
 }
 
 static void callback_gwconn_connected(void)
 {
-
+	logMsgManaged('M', "CALLBACK:: callback_gwconn_connected");
 }
 
 static void callback_state_changed(void)
 {
-
+	logMsgManaged('M', "CALLBACK:: callback_state_changed");
 }
 
 static void callback_clientid_changed(void)
 {
-
+	logMsgManaged('M', "CALLBACK:: callback_clientid_changed");
 }
 
 

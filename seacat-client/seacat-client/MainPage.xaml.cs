@@ -17,6 +17,7 @@ using Windows.ApplicationModel;
 using System.Reflection;
 using seacat_wp_client;
 using System.Net.Http;
+using seacat_wp_client.Core;
 
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641

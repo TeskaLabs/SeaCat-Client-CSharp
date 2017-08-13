@@ -11,11 +11,11 @@ using seacat_wp_client.Utils;
 using seacat_wp_client.Ping;
 using seacat_wp_client.Core;
 using System.ComponentModel;
-using seacat_wp_client.Communication;
 using System.Threading;
 using seacat_wp_client;
+using seacat_wp_client.Interfaces;
 
-namespace seacat_wp_client
+namespace seacat_wp_client.Core
 {
 
     public class Reactor : seacat_core_bridge.ISeacatCoreAPI

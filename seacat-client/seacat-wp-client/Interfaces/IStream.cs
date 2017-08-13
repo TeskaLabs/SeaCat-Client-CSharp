@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Communication
+namespace seacat_wp_client.Interfaces
 {
     public interface IStream
     {
