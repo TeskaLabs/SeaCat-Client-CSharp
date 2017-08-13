@@ -25,6 +25,34 @@ static void logMsgManaged(char level, const char* message) {
 
 static void callback_write_ready(void ** data, uint16_t * data_len) {
 	logMsgManaged('M', "CALLBACK:: callback_write_ready");
+
+	// todo attach current thread
+	RawData^ rawData = coreAPI->CallbackWriteReady();
+	*data = rawData->dataPtr.operator void *;
+	*data_len = rawData->length;
+	// todo detach current thread
+	/*
+
+	// Get buffer object
+	jobject obj = (*g_env)->CallObjectMethod(g_env, g_reactor_obj, g_reactor_JNICALLBACK_write_ready_mid, NULL);
+	if (obj != NULL)
+	{
+		g_write_buffer_obj = (*g_env)->NewGlobalRef(g_env, obj);
+		assert(g_write_buffer_obj != NULL);
+
+		(*g_env)->DeleteLocalRef(g_env, obj);
+		obj = NULL;
+
+		void * trg_data = (*g_env)->GetDirectBufferAddress(g_env, g_write_buffer_obj);
+		jint pos = (*g_env)->CallIntMethod(g_env, g_write_buffer_obj, g_buffer_position_mid, NULL);
+		jint limit = (*g_env)->CallIntMethod(g_env, g_write_buffer_obj, g_buffer_limit_mid, NULL);
+
+		*data = trg_data + pos;
+		*data_len = limit - pos;
+	}
+
+	if (getEnvStat == JNI_EDETACHED)
+		(*g_java_vm)->DetachCurrentThread(g_java_vm);*/
 }
 
 static void callback_read_ready(void ** data, uint16_t * data_len) {

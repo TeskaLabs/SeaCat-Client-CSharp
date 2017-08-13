@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Threading;
 using seacat_wp_client;
 using seacat_wp_client.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace seacat_wp_client.Core
 {
@@ -162,9 +163,6 @@ namespace seacat_wp_client.Core
                 System.Diagnostics.Debug.WriteLine(String.Format("return code %d in %s", rc, "seacatcc.run"));
         }
 
-        ///
-
-
         public void RegisterFrameProvider(IFrameProvider provider, bool single)
         {
             lock (frameProviders)
@@ -187,68 +185,6 @@ namespace seacat_wp_client.Core
         }
 
 
-        public void BroadcastState()
-        {
-            /* MTODO
-            Intent intent = SeaCatInternals.createIntent(SeaCatClient.ACTION_SEACAT_STATE_CHANGED);
-            intent.putExtra(SeaCatClient.EXTRA_STATE, seacatcc.state());
-            intent.putExtra(SeaCatClient.EXTRA_PREV_STATE, lastState);
-            this.sendBroadcast(intent);*
-        }
-
-        ///
-
-        private bool ReceivedControlFrame(ByteBuffer frame)
-        {
-            int frameVersionType = frame.getInt() & 0x7fffffff;
-
-            int frameLength = frame.getInt();
-            byte frameFlags = (byte)(frameLength >> 24);
-            frameLength &= 0xffffff;
-
-            if (frameLength + SPDY.HEADER_SIZE != frame.limit())
-            {
-                Log.w(SeaCatInternals.L, String.format("Incorrect frame received: %d %x %d %x - closing connection", frame.limit(), frameVersionType, frameLength, frameFlags));
-
-                // Invalid frame received -> disconnect from a gateway
-                seacatcc.yield('d');
-                return true;
-            }
-
-            ICntlFrameConsumer consumer = cntlFrameConsumers.get(frameVersionType);
-            if (consumer == null)
-            {
-                Log.w(SeaCatInternals.L, String.format("Unidentified Control frame received: %d %x %d %x", frame.limit(), frameVersionType, frameLength, frameFlags));
-                return true;
-            }
-
-            return consumer.receivedControlFrame(this, frame, frameVersionType, frameLength, frameFlags);
-        }
-
-
-        protected void ConfigureProxyServer()
-        {
-            /* MTODO
-            SharedPreferences sp = this.getSharedPreferences(SeaCatInternals.SeaCatPreferences, Context.MODE_PRIVATE);
-
-            String proxy_host = sp.getString("HTTPSProxyHost", "");
-            String proxy_port = sp.getString("HTTPSProxyPort", "");
-
-            if (proxy_host.isEmpty())
-            {
-                proxy_host = System.getProperty("https.proxyHost", "");
-                proxy_port = System.getProperty("https.proxyPort", "");
-                //String proxy_user = System.getProperty("https.proxyUser", "");
-                //String proxy_password = System.getProperty("https.proxyPassword", "");
-            }
-
-            int rc = seacatcc.set_proxy_server_worker(proxy_host, proxy_port);
-            RC.CheckAndLogError("seacatcc.set_proxy_server_worker", rc);
-            */
-        }
-
-        ///
-
         public String GetClientTag()
         {
             return this.clientTag;
@@ -270,15 +206,39 @@ namespace seacat_wp_client.Core
         {
             System.Diagnostics.Debug.WriteLine(message);
         }
+        
+        public RawData CallbackWriteReady()
+        {
+            // return dummy data
+            return new RawData();
+        }
+
+        public RawData CallbackReadReady()
+        {
+            // return dummy data
+            return new RawData();
+        }
+
+        public void CallbackFrameReceived(RawData rawData)
+        {
+
+        }
+
+        public void CallbackFrameReturn(RawData rawData)
+        {
+
+        }
 
         public void CallbackWorkerRequest(char worker)
         {
             switch (worker)
             {
                 case 'P':
+                    // call ppkgen worker
                     new Task(() => Bridge.ppkgen_worker()).Start();
                     break;
                 case 'C':
+                    // create and call csr worker
                     Task CSRWorker = CSR.CreateDefault();
                     if (CSRWorker != null) CSRWorker.Start();
                     break;
@@ -286,6 +246,31 @@ namespace seacat_wp_client.Core
                     System.Diagnostics.Debug.WriteLine(String.Format("Unknown worker requested %c", worker));
                     break;
             }
+        }
+
+        public void CallbackEvloopStarted()
+        {
+
+        }
+
+        public void CallbackGwconnReset()
+        {
+
+        }
+
+        public void CallbackGwconnConnected()
+        {
+
+        }
+
+        public void CallbackStateChanged()
+        {
+
+        }
+
+        public void CallbackClientidChanged()
+        {
+
         }
     }
 }

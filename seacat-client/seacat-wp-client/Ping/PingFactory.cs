@@ -70,7 +70,6 @@ namespace seacat_wp_client.Ping
         }
 
 
-
         public FrameResult BuildFrame(Reactor reactor)
         {
             lock (this)

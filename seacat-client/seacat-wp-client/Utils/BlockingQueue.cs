@@ -7,79 +7,83 @@ using System.Threading.Tasks;
 
 namespace seacat_wp_client.Utils
 {
+    /// <summary>
+    /// Blocking queue that uses linked list 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class BlockingQueue<T>
     {
-        private readonly LinkedQueue<T> _queue = new LinkedQueue<T>();
-        private bool _stopped;
+        private readonly LinkedQueue<T> queue = new LinkedQueue<T>();
+        private bool stopped;
 
         public LinkedQueue<T> Queue
         {
-            get { return _queue; }
+            get { return queue; }
         }
 
         public bool IsEmpty()
         {
-            return _queue.Items.Count == 0;
+            return queue.Items.Count == 0;
         }
 
         public bool Contains(T item)
         {
-            return _queue.Items.Contains(item);
+            return queue.Items.Contains(item);
         }
 
         public bool Enqueue(T item)
         {
-            if (_stopped)
+            if (stopped)
                 return false;
-            lock (_queue)
+            lock (queue)
             {
-                if (_stopped)
+                if (stopped)
                     return false;
-                _queue.Enqueue(item);
-                Monitor.Pulse(_queue);
+                queue.Enqueue(item);
+                Monitor.Pulse(queue);
             }
             return true;
         }
 
         public T Dequeue()
         {
-            if (_stopped)
+            if (stopped)
                 return default(T);
-            lock (_queue)
+            lock (queue)
             {
-                if (_stopped)
+                if (stopped)
                     return default(T);
-                while (_queue.Count == 0)
+                while (queue.Count == 0)
                 {
-                    Monitor.Wait(_queue);
-                    if (_stopped)
+                    Monitor.Wait(queue);
+                    if (stopped)
                         return default(T);
                 }
-                return _queue.Dequeue();
+                return queue.Dequeue();
             }
         }
 
         public void Stop()
         {
-            if (_stopped)
+            if (stopped)
                 return;
-            lock (_queue)
+            lock (queue)
             {
-                if (_stopped)
+                if (stopped)
                     return;
-                _stopped = true;
-                Monitor.PulseAll(_queue);
+                stopped = true;
+                Monitor.PulseAll(queue);
             }
         }
 
         public void Remove(T item)
         {
-            _queue.Remove(item);
+            queue.Remove(item);
         }
 
         public void RemoveAt(int index)
         {
-            _queue.RemoveAt(index);
+            queue.RemoveAt(index);
         }
        
     }

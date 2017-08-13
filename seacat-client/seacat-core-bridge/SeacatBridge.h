@@ -4,13 +4,37 @@ namespace seacat_core_bridge
 {
 	using namespace Platform;
 
+	public ref class RawData sealed {
+	public:
+		property uint16 length;
+		property Platform::IntPtr dataPtr;
+	};
+
 	[Windows::Foundation::Metadata::WebHostHidden]
 	public interface class ISeacatCoreAPI
 	{
 	public:
 		virtual void LogMessage(char16 level, Platform::String^ message);
 
+		virtual RawData^ CallbackWriteReady();
+
+		virtual RawData^ CallbackReadReady();
+
+		virtual void CallbackFrameReceived(RawData^ rawData);
+
+		virtual void CallbackFrameReturn(RawData^ rawData);
+
 		virtual void CallbackWorkerRequest(char16 worker);
+
+		virtual void CallbackEvloopStarted();
+
+		virtual void CallbackGwconnReset();
+
+		virtual void CallbackGwconnConnected();
+		
+		virtual void CallbackStateChanged();
+
+		virtual void CallbackClientidChanged();
 	};
 
 	public ref class SeacatBridge sealed
