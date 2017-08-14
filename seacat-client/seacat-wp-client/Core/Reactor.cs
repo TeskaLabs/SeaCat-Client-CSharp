@@ -15,6 +15,7 @@ using System.Threading;
 using seacat_wp_client;
 using seacat_wp_client.Interfaces;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace seacat_wp_client.Core
 {
@@ -207,24 +208,24 @@ namespace seacat_wp_client.Core
             System.Diagnostics.Debug.WriteLine(message);
         }
         
-        public RawData CallbackWriteReady()
+        public byte[] CallbackWriteReady()
         {
             // return dummy data
-            return new RawData();
+            return null;
         }
 
-        public RawData CallbackReadReady()
+        public byte[] CallbackReadReady()
         {
             // return dummy data
-            return new RawData();
+            return null;
         }
 
-        public void CallbackFrameReceived(RawData rawData)
+        public void CallbackFrameReceived(byte[] data)
         {
 
         }
 
-        public void CallbackFrameReturn(RawData rawData)
+        public void CallbackFrameReturn(byte[] data)
         {
 
         }
@@ -272,5 +273,6 @@ namespace seacat_wp_client.Core
         {
 
         }
+
     }
 }

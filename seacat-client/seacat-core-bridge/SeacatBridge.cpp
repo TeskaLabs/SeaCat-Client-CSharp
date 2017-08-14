@@ -27,9 +27,9 @@ static void callback_write_ready(void ** data, uint16_t * data_len) {
 	logMsgManaged('M', "CALLBACK:: callback_write_ready");
 
 	// todo attach current thread
-	RawData^ rawData = coreAPI->CallbackWriteReady();
-	*data = rawData->dataPtr.operator void *;
-	*data_len = rawData->length;
+	auto rawData = coreAPI->CallbackWriteReady();
+	*data = rawData->Data;
+	*data_len = rawData->Length;
 	// todo detach current thread
 	/*
 
@@ -113,6 +113,8 @@ SeacatBridge::SeacatBridge()
 
 int SeacatBridge::init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuffix, String^ platform, String^ varDirChar) {
 	::coreAPI = coreAPI;
+
+
 	auto appIdCst = ConstCharFromString(appId)->c_str();
 	auto appIdSuffixCst = ConstCharFromString(appIdSuffix)->c_str();
 	auto platformCst = ConstCharFromString(platform)->c_str();
@@ -146,6 +148,7 @@ int SeacatBridge::init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuff
 	assert(rc == SEACATCC_RC_OK);
 	rc = seacatcc_hook_register('i', callback_clientid_changed);
 	assert(rc == SEACATCC_RC_OK);
+
 
 	return rc;
 }
