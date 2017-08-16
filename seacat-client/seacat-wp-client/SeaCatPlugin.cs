@@ -23,7 +23,7 @@ namespace seacat_wp_client
             {
                 var pcaps = p.GetCapabilities();
                 if (pcaps == null || !pcaps.Any()) continue;
-
+                
                 foreach (var tuple in pcaps)
                 {
                     caps.Add(String.Format("%s\037%s", tuple.Item1, tuple.Item2));
@@ -39,7 +39,7 @@ namespace seacat_wp_client
             // Add hardware capabilities
             caps.Add(String.Format("%s\037%s", "hwb", deviceInfo.SystemFirmwareVersion));
             caps.Add(String.Format("%s\037%s", "hwd", deviceInfo.SystemHardwareVersion));
-
+            
             caps.Add(null);
 
             String[] caparr = new String[caps.Count];
