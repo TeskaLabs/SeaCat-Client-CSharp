@@ -2,12 +2,8 @@
 using seacat_wp_client.Interfaces;
 using seacat_wp_client.Utils;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace seacat_wp_client.Ping
 {
@@ -16,7 +12,6 @@ namespace seacat_wp_client.Ping
         private IntegerCounter idSequence = new IntegerCounter(1);
         private BlockingQueue<Ping> outboundPingQueue = new BlockingQueue<Ping>();
         private Dictionary<int, Ping> waitingPingDict = new Dictionary<int, Ping>();
-
 
         public void Ping(Reactor reactor, Ping ping)
         {
@@ -48,7 +43,7 @@ namespace seacat_wp_client.Ping
         {
             lock (this)
             {
-                foreach (var key in waitingPingDict.Keys)
+                foreach (var key in waitingPingDict.Keys.ToList())
                 {
                     Ping ping = waitingPingDict[key];
                     if (ping.IsExpired(now))
@@ -103,7 +98,7 @@ namespace seacat_wp_client.Ping
             lock (this)
             {
                 //TODO: pingId is unsigned (based on SPDY specifications)
-                int pingId = frame.ReadInt32();
+                int pingId = frame.GetInt();
                 if ((pingId % 2) == 1)
                 {
                     // Pong frame received ...
@@ -111,10 +106,9 @@ namespace seacat_wp_client.Ping
                     waitingPingDict.Remove(pingId);
 
                     if (ping != null) ping.Pong();
-                    else System.Diagnostics.Debug.WriteLine("received pong with unknown id: " + pingId);
+                    else Logger.Warning("received pong with unknown id: " + pingId);
 
                 }
-
                 else
                 {
                     //Send pong back to server

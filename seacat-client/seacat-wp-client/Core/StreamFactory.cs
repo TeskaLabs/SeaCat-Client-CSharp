@@ -69,12 +69,12 @@ namespace seacat_wp_client.Core
 
         protected bool ReceivedALX1_SYN_REPLY(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags)
         {
-            int streamId = frame.ReadInt32();
+            int streamId = frame.GetInt();
             IStream stream = GetStream(streamId);
             if (stream == null)
             {
                 System.Diagnostics.Debug.WriteLine("receivedALX1_SYN_REPLY stream not found: " + streamId + " (can be closed already)");
-                frame.Clear();
+                frame.Reset();
                 SendRST_STREAM(frame, reactor, streamId, SPDY.RST_STREAM_STATUS_INVALID_STREAM);
                 return false;
             }
@@ -91,7 +91,7 @@ namespace seacat_wp_client.Core
 
         protected bool ReceivedSPD3_RST_STREAM(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags)
         {
-            int streamId = frame.ReadInt32();
+            int streamId = frame.GetInt();
             IStream stream = GetStream(streamId);
             if (stream == null)
             {
@@ -110,17 +110,17 @@ namespace seacat_wp_client.Core
 
         public bool ReceivedDataFrame(Reactor reactor, ByteBuffer frame)
         {
-            int streamId = frame.ReadInt32();
+            int streamId = frame.GetInt();
             IStream stream = GetStream(streamId);
             if (stream == null)
             {
-                System.Diagnostics.Debug.WriteLine("receivedDataFrame stream not found: " + streamId + " (can be closed already)");
-                frame.Clear();
+                Logger.Error("receivedDataFrame stream not found: " + streamId + " (can be closed already)");
+                frame.Reset();
                 SendRST_STREAM(frame, reactor, streamId, SPDY.RST_STREAM_STATUS_INVALID_STREAM);
                 return false;
             }
 
-            int frameLength = frame.ReadInt32();
+            int frameLength = frame.GetInt();
             byte frameFlags = (byte)(frameLength >> 24);
             frameLength &= 0xffffff;
 

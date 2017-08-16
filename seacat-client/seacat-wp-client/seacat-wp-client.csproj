@@ -107,6 +107,7 @@
     <Compile Include="Utils\ByteBuffer.cs" />
     <Compile Include="CSR.cs" />
     <Compile Include="Utils\EventDispatcher.cs" />
+    <Compile Include="Utils\FramePrinter.cs" />
     <Compile Include="Utils\IntegerCounter.cs" />
     <Compile Include="Utils\LogFlag.cs" />
     <Compile Include="Utils\Logger.cs" />

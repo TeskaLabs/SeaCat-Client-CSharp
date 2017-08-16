@@ -39,35 +39,35 @@ namespace seacat_wp_client.Core
         public static void buildSPD3Ping(ByteBuffer frame, int pingId)
         {
             // It is SPDY v3 control frame 
-            frame.Write((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
+            frame.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
 
             // Type
-            frame.Write(CNTL_TYPE_PING);
+            frame.PutShort(CNTL_TYPE_PING);
 
             // Flags and length
-            frame.Write(4);
+            frame.PutInt(4);
 
             // Ping ID
-            frame.Write(pingId);
+            frame.PutInt(pingId);
         }
 
 
         public static void buildSPD3RstStream(ByteBuffer frame, int streamId, int statusCode)
         {
             // It is SPDY v3 control frame 
-            frame.Write((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
+            frame.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
 
             // Type
-            frame.Write(CNTL_TYPE_RST_STREAM);
+            frame.PutShort(CNTL_TYPE_RST_STREAM);
 
             // Flags and length
-            frame.Write(8);
+            frame.PutInt(8);
 
             // Stream ID
-            frame.Write(streamId);
+            frame.PutInt(streamId);
 
             // Status Code
-            frame.Write(statusCode);
+            frame.PutInt(statusCode);
         }
         /*
         public static void buildALX1SynStream(BinaryWriter buffer, int streamId, Url url, String method, Headers headers, bool fin_flag, int priority)

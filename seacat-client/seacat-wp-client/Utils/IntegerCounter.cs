@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace seacat_wp_client.Utils
 {
-    /*
-     * Simple un-synchronized counter object
-     */
+    /// <summary>
+    /// Simple un-synchronized counter object
+    /// </summary>
     public class IntegerCounter
     {
         private int counter;
@@ -18,7 +18,7 @@ namespace seacat_wp_client.Utils
             this.counter = start;
         }
 
-        public override String ToString()
+        public override string ToString()
         {
             return "[Counter counter=" + counter + "]";
         }

@@ -14,12 +14,12 @@ namespace seacat_wp_client.Utils
 
         public static void CheckAndThrowIOException(String message, int rc)
         {
-            if (rc != RC_OK) throw new IOException(String.Format("SeaCat return code %d in %s", rc, message));
+            if (rc != RC_OK) throw new IOException($"SeaCat return code {rc} in {message}");
         }
 
         public static void CheckAndLogError(String message, int rc)
         {
-            if (rc != RC_OK) System.Diagnostics.Debug.WriteLine(String.Format("SeaCat return code %d in %s", rc, message));
+            if (rc != RC_OK) Logger.Error($"SeaCat return code {rc} in {message}");
         }
 
     }

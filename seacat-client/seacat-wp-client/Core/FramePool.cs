@@ -69,13 +69,13 @@ namespace seacat_wp_client.Core
         {
             if (totalCount > lowWaterMark)
             {
-                frame.Clear();
+                frame.Reset();
                 Interlocked.Decrement(ref totalCount);
                 // Discard frame
             }
             else
             {
-                frame.Clear();
+                frame.Reset();
                 lock (stack)
             {
                     stack.Push(frame);
