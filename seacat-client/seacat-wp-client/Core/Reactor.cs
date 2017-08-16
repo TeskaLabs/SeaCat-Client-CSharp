@@ -25,22 +25,9 @@ namespace seacat_wp_client.Core
 
         private static Reactor _instance;
 
-        private Reactor()
+        public Reactor()
         {
 
-        }
-
-        public static Reactor Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new Reactor();
-                }
-
-                return _instance;
-            }
         }
 
 
@@ -61,7 +48,7 @@ namespace seacat_wp_client.Core
             StorageFolder local = Windows.Storage.ApplicationData.Current.LocalFolder;
             Package package = Package.Current;
 
-            int rc = Bridge.init((ISeacatCoreAPI)this, package.Id.Name, "dev", "win",
+            int rc = Bridge.init((ISeacatCoreAPI)this, package.Id.Name, "dev", "wp8",
                 local.Path + "\\.seacat"); // subdir must be specified since the core api adds a suffix to it
 
             RC.CheckAndThrowIOException("seacatcc.init", rc);
@@ -159,7 +146,7 @@ namespace seacat_wp_client.Core
 
         private static void _run()
         {
-            int rc = Reactor.Instance.Bridge.run();
+            int rc = Bridge.run();
             if (rc != RC.RC_OK)
                 System.Diagnostics.Debug.WriteLine(String.Format("return code %d in %s", rc, "seacatcc.run"));
         }
@@ -222,12 +209,43 @@ namespace seacat_wp_client.Core
 
         public void CallbackFrameReceived(byte[] data)
         {
+            /*var stream = new MemoryStream(data);
 
+            int pos = frame.position();
+            frame.position(pos + frame_len);
+            frame.flip();
+
+            byte fb = frame.get(0);
+            bool giveBackFrame = true;
+
+            try
+            {
+                if ((fb & (1L << 7)) != 0)
+                {
+                    giveBackFrame = receivedControlFrame(frame);
+                }
+
+                else
+                {
+                    giveBackFrame = streamFactory.receivedDataFrame(this, frame);
+                }
+
+            }
+            catch (Exception e)
+            {
+                Log.e(SeaCatInternals.L, "JNICallbackFrameReceived:", e);
+                giveBackFrame = true;
+            }
+
+            finally
+            {
+                if (giveBackFrame) framePool.giveBack(frame);
+            }*/
         }
 
         public void CallbackFrameReturn(byte[] data)
         {
-
+            var stream = new MemoryStream(data);
         }
 
         public void CallbackWorkerRequest(char worker)

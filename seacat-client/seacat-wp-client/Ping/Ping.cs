@@ -11,7 +11,7 @@ namespace seacat_wp_client.Ping
     {
         protected double deadline; //TODO: Add support for deadline (skip&cancel objects that are behind deadline)
 
-        protected Ping()
+        public Ping()
         {
             PingId = -1;
             deadline = Reactor.Instance.Bridge.time() + 60.0;
