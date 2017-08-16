@@ -87,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\FrameResult.cs" />
+    <Compile Include="Http\SeaCatHttpClient.cs" />
     <Compile Include="Interfaces\IFrameConsumer.cs" />
     <Compile Include="Interfaces\IFrameProvider.cs" />
     <Compile Include="Interfaces\IStream.cs" />
@@ -98,10 +99,17 @@
     <Compile Include="Ping\Pong.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\Reactor.cs" />
+    <Compile Include="SeaCatClient.cs" />
+    <Compile Include="SeaCatInternals.cs" />
+    <Compile Include="SeaCatPlugin.cs" />
+    <Compile Include="Socket\SocketConfig.cs" />
     <Compile Include="Utils\BlockingQueue.cs" />
     <Compile Include="Utils\ByteBuffer.cs" />
     <Compile Include="CSR.cs" />
+    <Compile Include="Utils\EventDispatcher.cs" />
     <Compile Include="Utils\IntegerCounter.cs" />
+    <Compile Include="Utils\LogFlag.cs" />
+    <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\RC.cs" />
     <Compile Include="Core\SPDY.cs" />
   </ItemGroup>

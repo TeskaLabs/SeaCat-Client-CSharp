@@ -75,8 +75,8 @@ namespace seacat_wp_client.Core
 
 
             // Create and register ping factory as control frame consumer
-            pingFactory = new PingFactory();
-            cntlFrameConsumers.Add(SPDY.buildFrameVersionType(SPDY.CNTL_FRAME_VERSION_SPD3, SPDY.CNTL_TYPE_PING), pingFactory);
+            PingFactory = new PingFactory();
+            cntlFrameConsumers.Add(SPDY.buildFrameVersionType(SPDY.CNTL_FRAME_VERSION_SPD3, SPDY.CNTL_TYPE_PING), PingFactory);
 
             // Start reactor thread
             ccoreThread.Start();
@@ -102,7 +102,7 @@ namespace seacat_wp_client.Core
 
         // MTODO private Executor workerExecutor;
 
-        public PingFactory pingFactory;
+        public PingFactory PingFactory { get; set; }
         public StreamFactory streamFactory;
 
         private Dictionary<int, IFrameConsumer> cntlFrameConsumers = new Dictionary<int, IFrameConsumer>();
@@ -146,7 +146,7 @@ namespace seacat_wp_client.Core
 
         private static void _run()
         {
-            int rc = Bridge.run();
+            int rc = SeaCatClient.GetReactor().Bridge.run();
             if (rc != RC.RC_OK)
                 System.Diagnostics.Debug.WriteLine(String.Format("return code %d in %s", rc, "seacatcc.run"));
         }
@@ -172,6 +172,13 @@ namespace seacat_wp_client.Core
             RC.CheckAndThrowIOException("seacatcc.yield", rc);
         }
 
+        public void BroadcastState()
+        {
+            var evt = new EventMessage();
+            evt.PutExtra(SeaCatClient.EXTRA_STATE, Bridge.state());
+            evt.PutExtra(SeaCatClient.EXTRA_PREV_STATE, lastState);
+            EventDispatcher.Dispatcher.SendBroadcast(evt);
+        }
 
         public String GetClientTag()
         {

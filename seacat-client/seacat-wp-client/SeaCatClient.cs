@@ -1,10 +1,13 @@
 ﻿using seacat_wp_client.Core;
+using seacat_wp_client.Http;
 using seacat_wp_client.Socket;
 using seacat_wp_client.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -150,12 +153,12 @@ namespace seacat_wp_client
         /// is.close();
         /// }
         ///
-        /// <param name="url">the URL that represents the resource that created <tt>HttpURLConnection</tt> will point to.</param>
+        /// <param name="uri">the URL that represents the resource that created <tt>HttpURLConnection</tt> will point to.</param>
         /// <returns>a new <tt>HttpURLConnection</tt> connection to the resource referred to by this URL.</returns>
         /// </summary>
-        public static HttpURLConnection Open(URL url)
+        public static HttpClient Open(Uri uri)
         {
-            return new URLConnection(GetReactor(), url, 3 /*priority*/);
+            return new SeaCatHttpClient(GetReactor(), uri);
         }
 
         /// <summary>
@@ -163,9 +166,9 @@ namespace seacat_wp_client
         /// <param name="url">String with the URL that represents the resource that created HttpURLConnection will point to.</param>
         /// <returns> <tt>HttpURLConnection</tt> instance, see <tt>open(URL url)</returns>
         /// </summary>
-        public static HttpURLConnection Open(String url)
+        public static HttpClient Open(String url)
         {
-            return Open(new URL(url));
+            return Open(new Uri(url));
         }
 
 
@@ -255,7 +258,6 @@ namespace seacat_wp_client
             return r?.GetClientTag() ?? null;
         }
 
-        private SeaCatClient() { } // This is static-only class, so we hide constructor
+        private SeaCatClient() { }  // This is static-only class, so we hide constructor
     }
-
 }

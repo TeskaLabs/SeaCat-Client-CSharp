@@ -46,7 +46,7 @@ namespace seacat_wp_client
 
             caparr = caps.ToArray<string>();
 
-            int rc = Reactor.Instance.Bridge.capabilities_store(caparr);
+            int rc = SeaCatClient.GetReactor().Bridge.capabilities_store(caparr);
             RC.CheckAndLogError("seacatcc.capabilities_store", rc);
             if (rc == 0) capabilitiesCommited = true;
         }

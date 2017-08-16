@@ -29,15 +29,13 @@ namespace seacat_client
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private Reactor seacatClient;
 
         public MainPage()
         {
             this.InitializeComponent();
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
-            seacatClient = Reactor.Instance;
-            seacatClient.Init();
+            SeaCatClient.Initialize();
         }
 
         /// <summary>

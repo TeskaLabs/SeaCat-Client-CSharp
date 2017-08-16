@@ -14,7 +14,7 @@ namespace seacat_wp_client.Ping
         public Ping()
         {
             PingId = -1;
-            deadline = Reactor.Instance.Bridge.time() + 60.0;
+            deadline = SeaCatClient.GetReactor().Bridge.time() + 60.0;
         }
 
         public int PingId { get; set; }
