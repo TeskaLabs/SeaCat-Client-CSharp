@@ -9,11 +9,13 @@ namespace seacat_wp_client.Utils
 {
     /// <summary>
     /// Implementation of memory buffer
+    /// Buffer starts by default in WRITE mode, until you call the FLIP method, which puts it into READ mode
     /// </summary>
     public class ByteBuffer
     {
         private readonly byte[] _buffer;
         private int _pos;  // Must track start of the buffer.
+        private bool isReadMode = false;
 
         public int Length { get { return _buffer.Length; } }
 
@@ -27,12 +29,26 @@ namespace seacat_wp_client.Utils
         {
             _buffer = buffer;
             _pos = pos;
+            // for write mode, the limit is the same as capacity
+            Limit = buffer.Length;
+            isReadMode = false;
         }
+
+        public int Limit { get; protected set; }
+
+        public int Capacity { get { return _buffer.Length; } }
 
         public int Position
         {
             get { return _pos; }
             set { _pos = value; }
+        }
+
+        public void Flip()
+        {
+            // switch to the other mode
+            _pos = 0;
+            isReadMode = !isReadMode;
         }
 
         public void Reset()

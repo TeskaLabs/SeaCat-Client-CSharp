@@ -30,7 +30,7 @@ namespace seacat_wp_client.Utils
         {
             return queue.Items.Contains(item);
         }
-
+        
         public bool Enqueue(T item)
         {
             if (stopped)

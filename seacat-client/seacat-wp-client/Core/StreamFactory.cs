@@ -45,7 +45,7 @@ namespace seacat_wp_client.Core
             }
         }
 
-        protected void Reset()
+        public void Reset()
         {
             lock (this)
             {

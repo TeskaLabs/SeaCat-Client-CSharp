@@ -62,6 +62,13 @@ namespace seacat_wp_client.Utils
     {
         private Dictionary<string, object> extras = new Dictionary<string, object>();
 
+        public EventMessage(string type)
+        {
+            this.EventType = type;
+        }
+
+        public string EventType { get; set; }
+
         public void PutExtra(string key, string value) => extras.Add(key, value);
 
         public string GetString(string key) => extras[key] as string ?? "";
