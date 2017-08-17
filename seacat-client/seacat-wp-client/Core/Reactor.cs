@@ -77,7 +77,7 @@ namespace seacat_wp_client.Core
             });
 
             // Setup frame provider priority queue
-            //frameProviders = new BlockingQueue<IFrameProvider>(11, frameProvidersComparator);
+            frameProviders = new PriorityBlockingQueue<IFrameProvider>(frameProvidersComparator);
 
 
             // Create and register stream factory as control frame consumer

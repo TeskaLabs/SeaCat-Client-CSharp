@@ -112,6 +112,7 @@
     <Compile Include="Utils\IntegerCounter.cs" />
     <Compile Include="Utils\LogFlag.cs" />
     <Compile Include="Utils\Logger.cs" />
+    <Compile Include="Utils\PriorityBlockingQueue.cs" />
     <Compile Include="Utils\RC.cs" />
     <Compile Include="Core\SPDY.cs" />
   </ItemGroup>
