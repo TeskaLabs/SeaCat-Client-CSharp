@@ -135,6 +135,16 @@ namespace seacat_wp_client.Utils
             _buffer[_pos++] = value;
         }
 
+        public void PutBytes(byte[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+            {
+                AssertOffsetAndLength(_pos, sizeof(byte));
+                _buffer[_pos++] = values[i];
+            }
+        }
+
+
         public void PutShort(short value)
         {
             AssertOffsetAndLength(_pos, sizeof(short));
@@ -152,6 +162,18 @@ namespace seacat_wp_client.Utils
             AssertOffsetAndLength(_pos, sizeof(int));
             Write(sizeof(int), (ulong)value);
         }
+
+        public void PutInt(int offset, int value)
+        {
+            // restore pos value when read
+            int temp = _pos;
+            _pos = offset;
+            AssertOffsetAndLength(_pos, sizeof(int));
+            Write(sizeof(int), (ulong)value);
+            // TODO really restore _pos??
+            _pos = temp;
+        }
+
 
         public void PutUint(uint value)
         {
@@ -205,6 +227,15 @@ namespace seacat_wp_client.Utils
             return _buffer[_pos++];
         }
 
+        public void GetBytes(byte[] buffer, int index, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                buffer[i] = _buffer[index + i];
+            }
+            // TODO maybe increment _pos?
+        }
+
         public short GetShort()
         {
             return (short)Read(sizeof(short));
@@ -227,6 +258,7 @@ namespace seacat_wp_client.Utils
             _pos = offset;
             var output = (int)Read(sizeof(int));
             _pos = temp;
+            // TODO really restore _pos??
             return output;
         }
 

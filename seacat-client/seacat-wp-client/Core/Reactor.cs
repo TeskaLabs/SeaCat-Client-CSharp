@@ -70,13 +70,13 @@ namespace seacat_wp_client.Core
 
             // Create and register stream factory as control frame consumer
             streamFactory = new StreamFactory();
-            cntlFrameConsumers.Add(SPDY.buildFrameVersionType(SPDY.CNTL_FRAME_VERSION_ALX1, SPDY.CNTL_TYPE_SYN_REPLY), streamFactory);
-            cntlFrameConsumers.Add(SPDY.buildFrameVersionType(SPDY.CNTL_FRAME_VERSION_SPD3, SPDY.CNTL_TYPE_RST_STREAM), streamFactory);
+            cntlFrameConsumers.Add(SPDY.BuildFrameVersionType(SPDY.CNTL_FRAME_VERSION_ALX1, SPDY.CNTL_TYPE_SYN_REPLY), streamFactory);
+            cntlFrameConsumers.Add(SPDY.BuildFrameVersionType(SPDY.CNTL_FRAME_VERSION_SPD3, SPDY.CNTL_TYPE_RST_STREAM), streamFactory);
 
 
             // Create and register ping factory as control frame consumer
             PingFactory = new PingFactory();
-            cntlFrameConsumers.Add(SPDY.buildFrameVersionType(SPDY.CNTL_FRAME_VERSION_SPD3, SPDY.CNTL_TYPE_PING), PingFactory);
+            cntlFrameConsumers.Add(SPDY.BuildFrameVersionType(SPDY.CNTL_FRAME_VERSION_SPD3, SPDY.CNTL_TYPE_PING), PingFactory);
 
             // Start reactor thread
             ccoreThread.Start();

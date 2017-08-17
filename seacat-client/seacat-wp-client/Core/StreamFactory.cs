@@ -60,12 +60,7 @@ namespace seacat_wp_client.Core
             }
         }
 
-
-        protected IStream GetStream(int streamId)
-        {
-            return streams[streamId];
-        }
-
+        protected IStream GetStream(int streamId) => streams[streamId];
 
         protected bool ReceivedALX1_SYN_REPLY(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags)
         {
@@ -73,19 +68,15 @@ namespace seacat_wp_client.Core
             IStream stream = GetStream(streamId);
             if (stream == null)
             {
-                System.Diagnostics.Debug.WriteLine("receivedALX1_SYN_REPLY stream not found: " + streamId + " (can be closed already)");
+                Logger.Error($"ReceivedALX1_SYN_REPLY stream not found {streamId} (can be closed already)");
                 frame.Reset();
                 SendRST_STREAM(frame, reactor, streamId, SPDY.RST_STREAM_STATUS_INVALID_STREAM);
                 return false;
             }
-            
 
             bool ret = stream.ReceivedALX1_SYN_REPLY(reactor, frame, frameLength, frameFlags);
-
             if ((frameFlags & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) UnregisterStream(streamId);
-
             return ret;
-
         }
 
 
@@ -95,15 +86,13 @@ namespace seacat_wp_client.Core
             IStream stream = GetStream(streamId);
             if (stream == null)
             {
-                System.Diagnostics.Debug.WriteLine("receivedSPD3_RST_STREAM stream not found: " + streamId + " (can be closed already)");
+                Logger.Error($"receivedSPD3_RST_STREAM stream not found: {streamId} (can be closed already)");
                 return true;
             }
 
             bool ret = stream.ReceivedSPD3_RST_STREAM(reactor, frame, frameLength, frameFlags);
-
             // Remove stream from active map
             UnregisterStream(streamId);
-
             return ret;
         }
 
@@ -114,7 +103,7 @@ namespace seacat_wp_client.Core
             IStream stream = GetStream(streamId);
             if (stream == null)
             {
-                Logger.Error("receivedDataFrame stream not found: " + streamId + " (can be closed already)");
+                Logger.Error($"receivedDataFrame stream not found: {streamId} (can be closed already)");
                 frame.Reset();
                 SendRST_STREAM(frame, reactor, streamId, SPDY.RST_STREAM_STATUS_INVALID_STREAM);
                 return false;
@@ -125,32 +114,33 @@ namespace seacat_wp_client.Core
             frameLength &= 0xffffff;
 
             bool ret = stream.ReceivedDataFrame(reactor, frame, frameLength, frameFlags);
-
             if ((frameFlags & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) UnregisterStream(streamId);
-
             return ret;
         }
 
         public bool ReceivedControlFrame(Reactor reactor, ByteBuffer frame, int frameVersionType, int frameLength, byte frameFlags)
         {
             // Dispatch control frame
-            if (frameVersionType == ((SPDY.CNTL_FRAME_VERSION_ALX1 << 16) | SPDY.CNTL_TYPE_SYN_REPLY)){
+            if (frameVersionType == ((SPDY.CNTL_FRAME_VERSION_ALX1 << 16) | SPDY.CNTL_TYPE_SYN_REPLY))
+            {
                 return ReceivedALX1_SYN_REPLY(reactor, frame, frameLength, frameFlags);
-            } else if(frameVersionType == ((SPDY.CNTL_FRAME_VERSION_SPD3 << 16) | SPDY.CNTL_TYPE_RST_STREAM))
+            }
+            else if (frameVersionType == ((SPDY.CNTL_FRAME_VERSION_SPD3 << 16) | SPDY.CNTL_TYPE_RST_STREAM))
             {
                 return ReceivedSPD3_RST_STREAM(reactor, frame, frameLength, frameFlags);
-            }else
+            }
+            else
             {
-                System.Diagnostics.Debug.WriteLine("StreamFactory.receivedControlFrame cannot handle frame: " + frameVersionType);
+                Logger.Error($"StreamFactory.receivedControlFrame cannot handle frame: {frameVersionType}");
                 return true;
             }
         }
 
-        ///
 
         public void SendRST_STREAM(ByteBuffer frame, Reactor reactor, int streamId, int statusCode)
         {
-            SPDY.buildSPD3RstStream(frame, streamId, statusCode);
+            SPDY.BuildSPD3RstStream(frame, streamId, statusCode);
+
             try
             {
                 AddOutboundFrame(frame, reactor);
@@ -158,7 +148,7 @@ namespace seacat_wp_client.Core
             catch (IOException e)
             {
                 reactor.FramePool.GiveBack(frame); // Return frame
-                System.Diagnostics.Debug.WriteLine(e.Message);
+                Logger.Error(e.Message);
             }
         }
 
@@ -179,10 +169,8 @@ namespace seacat_wp_client.Core
             return new FrameResult(frame, keep);
         }
 
-        public int GetFrameProviderPriority()
-        {
-            return 1;
-        }
+        public int GetFrameProviderPriority() => 1;
+
     }
 
 }

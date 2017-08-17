@@ -87,7 +87,7 @@ namespace seacat_wp_client.Ping
                 }
 
                 frame = reactor.FramePool.Borrow("PingFactory.ping");
-                SPDY.buildSPD3Ping(frame, ping.PingId);
+                SPDY.BuildSPD3Ping(frame, ping.PingId);
                 return new FrameResult(frame, !outboundPingQueue.IsEmpty());
             }
         }

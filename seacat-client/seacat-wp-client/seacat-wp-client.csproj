@@ -87,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\FrameResult.cs" />
+    <Compile Include="Http\Headers.cs" />
     <Compile Include="Http\SeaCatHttpClient.cs" />
     <Compile Include="Interfaces\IFrameConsumer.cs" />
     <Compile Include="Interfaces\IFrameProvider.cs" />
