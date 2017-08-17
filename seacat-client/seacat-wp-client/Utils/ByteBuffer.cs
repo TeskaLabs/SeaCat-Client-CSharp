@@ -15,7 +15,6 @@ namespace seacat_wp_client.Utils
     {
         private readonly byte[] _buffer;
         private int _pos;  // Must track start of the buffer.
-        private bool isReadMode = false;
 
         public int Length { get { return _buffer.Length; } }
 
@@ -31,7 +30,18 @@ namespace seacat_wp_client.Utils
             _pos = pos;
             // for write mode, the limit is the same as capacity
             Limit = buffer.Length;
-            isReadMode = false;
+        }
+
+        public ByteBuffer(byte[] buffer, int pos, int limit)
+        {
+            if(limit <= pos)
+            {
+                throw new ArgumentException("Limit can't be lower than position");
+            }
+
+            _buffer = buffer;
+            _pos = pos;
+            Limit = limit;
         }
 
         public int Limit { get; protected set; }
@@ -46,9 +56,8 @@ namespace seacat_wp_client.Utils
 
         public void Flip()
         {
-            // switch to the other mode
+            Limit = 0;
             _pos = 0;
-            isReadMode = !isReadMode;
         }
 
         public void Reset()
@@ -186,7 +195,6 @@ namespace seacat_wp_client.Utils
             _pos = offset;
             AssertOffsetAndLength(_pos, sizeof(int));
             Write(sizeof(int), (ulong)value);
-            // TODO really restore _pos??
             _pos = temp;
         }
 
@@ -249,7 +257,9 @@ namespace seacat_wp_client.Utils
             {
                 buffer[i] = _buffer[index + i];
             }
-            // TODO maybe increment _pos?
+
+            // this is strange, however the same logic is implemented in Java
+            _pos += count;
         }
 
         public short GetShort()
@@ -274,7 +284,6 @@ namespace seacat_wp_client.Utils
             _pos = offset;
             var output = (int)Read(sizeof(int));
             _pos = temp;
-            // TODO really restore _pos??
             return output;
         }
 

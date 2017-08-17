@@ -22,6 +22,9 @@ static ByteBuffWrapper^ writeBuffer = nullptr;
 // last used read buffer
 static ByteBuffWrapper^ readBuffer = nullptr;
 
+void* writeBufferDataPtr = nullptr;
+void* readBufferDataPtr = nullptr;
+
 static void logMsgManaged(char level, const char* message) {
 	coreAPI->LogMessage(level, StringFromAscIIChars(message));
 }
@@ -32,8 +35,11 @@ static void callback_write_ready(void ** data, uint16_t * data_len) {
 	assert(writeBuffer == nullptr);
 
 	writeBuffer = coreAPI->CallbackWriteReady();
+	// TODO_RES: why increment by position?
 	*data = writeBuffer->data->Data + writeBuffer->position;
 	*data_len = writeBuffer->limit - writeBuffer->position;
+
+	writeBufferDataPtr = *data;
 }
 
 static void callback_read_ready(void ** data, uint16_t * data_len) {
@@ -43,8 +49,11 @@ static void callback_read_ready(void ** data, uint16_t * data_len) {
 	
 	readBuffer = coreAPI->CallbackReadReady();
 	assert(readBuffer->position == 0);
+	// TODO_RES: why increment by position?
 	*data = readBuffer->data->Data + readBuffer->position;
 	*data_len = readBuffer->capacity - readBuffer->position;
+
+	readBufferDataPtr = *data;
 }
 
 static void callback_frame_received(void * data, uint16_t data_len) {
@@ -53,19 +62,22 @@ static void callback_frame_received(void * data, uint16_t data_len) {
 	assert(readBuffer != nullptr);
 	coreAPI->CallbackFrameReceived(readBuffer, data_len);
 	readBuffer = nullptr;
+	readBufferDataPtr = nullptr;
 }
 
 static void callback_frame_return(void * data) {
 	logMsgManaged('M', "CALLBACK:: callback_frame_return");
 
-	// TODO_RES how to check that data belongs to either read or write buffer??
-	if (readBuffer != nullptr && readBuffer->data[0] == ((byte*)data)[0]) {
+	// TODO_RES: is this correct?
+	if (readBuffer != nullptr && readBufferDataPtr != nullptr && data == readBufferDataPtr) {
 		coreAPI->CallbackFrameReturn(readBuffer);
 		readBuffer = nullptr;
+		readBufferDataPtr = nullptr;
 	}
-	else if (writeBuffer != nullptr && writeBuffer->data[0] == ((byte*)data)[0]) {
+	else if (writeBuffer != nullptr && writeBufferDataPtr != nullptr && data == writeBufferDataPtr) {
 		coreAPI->CallbackFrameReturn(writeBuffer);
 		writeBuffer = nullptr;
+		writeBufferDataPtr = nullptr;
 	}
 	else {
 		logMsgManaged('E', "Unknown frame!!!");

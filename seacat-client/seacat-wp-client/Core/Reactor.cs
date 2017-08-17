@@ -47,6 +47,7 @@ namespace seacat_wp_client.Core
         public string ProxyHost { get; set; }
         public string ProxyPort { get; set; }
 
+
         public void Init()
         {
             if (packageName == null) packageName = "seacat_wp_client";
@@ -54,13 +55,14 @@ namespace seacat_wp_client.Core
             FramePool = new FramePool();
             // works as a background thread by default
             this.ccoreThread = new Task(() => _run());
-            
+
             Bridge = new SeacatBridge();
 
             StorageFolder local = ApplicationData.Current.LocalFolder;
             Package package = Package.Current;
 
-            int rc = Bridge.init((ISeacatCoreAPI)this, package.Id.Name, "dev", "wp8", 
+
+            int rc = Bridge.init((ISeacatCoreAPI)this, package.Id.Name, "dev", "wp8",
                 local.Path + "\\.seacat"); // subdir must be specified since the core api adds a suffix to it
 
             RC.CheckAndThrowIOException("seacatcc.init", rc);
@@ -94,13 +96,9 @@ namespace seacat_wp_client.Core
             ccoreThread.Start();
 
             // Wait till started
-            lock (eventLoopNotStartedlock)
-            {
-                // wait for start
-                eventLoopStarted.WaitOne();
-            }
+            eventLoopStarted.WaitOne();
         }
-        
+
         public void Shutdown()
         {
             int rc = Bridge.shutdown();
@@ -110,7 +108,7 @@ namespace seacat_wp_client.Core
             {
                 Task.Delay(5000).Wait();
                 // TODO_RES there is no way to interrupt task in WP. There must be a signal sent to inner C loop
-                
+
                 if (!ccoreThread.IsCompleted)
                 {
                     throw new IOException("Core thread is still alive!");
@@ -155,13 +153,17 @@ namespace seacat_wp_client.Core
         {
             switch (level)
             {
-                case 'D': Logger.Debug(message);
+                case 'D':
+                    Logger.Debug(message);
                     break;
-                case 'I': Logger.Info(message);
+                case 'I':
+                    Logger.Info(message);
                     break;
-                case 'E': Logger.Error(message);
+                case 'E':
+                    Logger.Error(message);
                     break;
-                case 'W':Logger.Warning(message);
+                case 'W':
+                    Logger.Warning(message);
                     break;
                 default:
                     Logger.Info(message);
@@ -229,7 +231,7 @@ namespace seacat_wp_client.Core
             int pos = frameWr.position;
             frameWr.position = (pos + frameLength);
 
-            ByteBuffer frame = new ByteBuffer(frameWr.data, frameWr.position);
+            ByteBuffer frame = new ByteBuffer(frameWr.data, frameWr.position, frameWr.limit);
             frame.Flip();
 
             byte fb = frame.GetByte(0);
@@ -259,7 +261,7 @@ namespace seacat_wp_client.Core
 
         public void CallbackFrameReturn(ByteBuffWrapper frame)
         {
-            FramePool.GiveBack(new ByteBuffer(frame.data, frame.position));
+            FramePool.GiveBack(new ByteBuffer(frame.data, frame.position, frame.limit));
         }
 
         public void CallbackWorkerRequest(char worker)

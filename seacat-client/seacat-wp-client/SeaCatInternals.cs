@@ -18,7 +18,7 @@ namespace seacat_wp_client
 
         private static Task CSRWorker = null;
         public static String applicationIdSuffix = null;
-        public static bool logDebug = false;
+        public static bool logDebug = true;
         
         
         public static void SetCSRWorker(Task csrWorker)

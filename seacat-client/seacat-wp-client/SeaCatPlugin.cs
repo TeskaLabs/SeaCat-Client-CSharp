@@ -31,7 +31,7 @@ namespace seacat_wp_client
             }
 
             // Add platform capabilities
-            caps.Add(String.Format("%s\037%s", "plI", deviceInfo.Id));
+            //caps.Add(String.Format("%s\037%s", "plI", deviceInfo.Id)); throws NotImplementedException
             caps.Add(String.Format("%s\037%s", "plm", deviceInfo.SystemManufacturer));
             caps.Add(String.Format("%s\037%s", "plM", deviceInfo.SystemSku));
             caps.Add(String.Format("%s\037%s", "plp", deviceInfo.SystemProductName));
@@ -39,8 +39,6 @@ namespace seacat_wp_client
             // Add hardware capabilities
             caps.Add(String.Format("%s\037%s", "hwb", deviceInfo.SystemFirmwareVersion));
             caps.Add(String.Format("%s\037%s", "hwd", deviceInfo.SystemHardwareVersion));
-            
-            caps.Add(null);
 
             String[] caparr = new String[caps.Count];
 

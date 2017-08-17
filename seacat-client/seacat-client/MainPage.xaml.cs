@@ -18,6 +18,7 @@ using System.Reflection;
 using seacat_wp_client;
 using System.Net.Http;
 using seacat_wp_client.Core;
+using System.Threading.Tasks;
 
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
@@ -30,12 +31,36 @@ namespace seacat_client
     public sealed partial class MainPage : Page
     {
 
+        public async Task<bool> DeleteSeacatDirAsync()
+        {
+            try
+            {
+                var allf = await ApplicationData.Current.LocalFolder.GetFoldersAsync();
+                var folder = await ApplicationData.Current.LocalFolder.GetFolderAsync(".seacat");
+                var files = await folder.GetFilesAsync();
+
+                foreach (var file in files)
+                {
+                    await file.DeleteAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            return true;
+        }
+
         public MainPage()
         {
             this.InitializeComponent();
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
-            SeaCatClient.Initialize();
+            new Task(() =>
+            {
+                DeleteSeacatDirAsync().Wait();
+                SeaCatClient.Initialize();
+            }).Start();
         }
 
         /// <summary>

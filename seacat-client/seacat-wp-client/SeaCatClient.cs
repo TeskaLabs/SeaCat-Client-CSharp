@@ -93,6 +93,7 @@ namespace seacat_wp_client
             try
             {
                 reactor = new Reactor();
+                reactor.Init();
             }
             catch (IOException e)
             {
