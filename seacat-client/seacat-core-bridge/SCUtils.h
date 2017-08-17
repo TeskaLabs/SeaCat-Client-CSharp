@@ -3,7 +3,7 @@
 #include <String>
 using namespace Platform;
 
-String^ StringFromAscIICharws(char charBuff[]) {
+String^ StringFromAscIIChars(char charBuff[]) {
 	std::string s_str = std::string(charBuff);
 	std::wstring wid_str = std::wstring(s_str.begin(), s_str.end());
 	const wchar_t* w_char = wid_str.c_str();

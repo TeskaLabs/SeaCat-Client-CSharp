@@ -37,9 +37,8 @@ namespace seacat_wp_client.Core
         public void Init()
         {
             FramePool = new FramePool();
+            // works as a background thread by default
             this.ccoreThread = new Task(() => _run());
-            //MTODO this.ccoreThread.setName("SeaCatCCoreThread");
-            //MTODO this.ccoreThread.setDaemon(true);
 
             //MTODO this.workerExecutor = new ThreadPoolExecutor(0, 1000, 5, TimeUnit.SECONDS, new BlockingQueue<IAsyncResult>());
 
@@ -202,19 +201,19 @@ namespace seacat_wp_client.Core
             System.Diagnostics.Debug.WriteLine(message);
         }
         
-        public byte[] CallbackWriteReady()
+        public ByteBuffWrapper CallbackWriteReady()
         {
             // return dummy data
             return null;
         }
 
-        public byte[] CallbackReadReady()
+        public ByteBuffWrapper CallbackReadReady()
         {
             // return dummy data
             return null;
         }
 
-        public void CallbackFrameReceived(byte[] data)
+        public void CallbackFrameReceived(ByteBuffWrapper frame, int frameLength)
         {
             /*var stream = new MemoryStream(data);
 
@@ -250,9 +249,9 @@ namespace seacat_wp_client.Core
             }*/
         }
 
-        public void CallbackFrameReturn(byte[] data)
+        public void CallbackFrameReturn(ByteBuffWrapper frame)
         {
-            var stream = new MemoryStream(data);
+
         }
 
         public void CallbackWorkerRequest(char worker)
@@ -274,6 +273,17 @@ namespace seacat_wp_client.Core
             }
         }
 
+
+        public double CallbackEvLoopHeartBeat(double now)
+        {
+            /*
+            pingFactory.heartBeat(now);
+            framePool.heartBeat(now);
+            */
+            // TODO: 26/11/2016 Find the best sleeping interval, can be much longer that 5 seconds, I guess
+            return 5.0; // Seconds
+        }
+
         public void CallbackEvloopStarted()
         {
 
@@ -289,12 +299,12 @@ namespace seacat_wp_client.Core
 
         }
 
-        public void CallbackStateChanged()
+        public void CallbackStateChanged(string state)
         {
 
         }
 
-        public void CallbackClientidChanged()
+        public void CallbackClientidChanged(string clientId, string clientTag)
         {
 
         }

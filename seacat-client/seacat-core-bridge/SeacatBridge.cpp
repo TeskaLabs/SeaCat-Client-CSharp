@@ -17,7 +17,10 @@ using namespace std;
 ISeacatCoreAPI^ coreAPI = nullptr;
 SeacatBridge^ bridge = nullptr;
 
-
+// last used write buffer
+static ByteBuffWrapper^ writeBuffer = nullptr;
+// last used read buffer
+static ByteBuffWrapper^ readBuffer = nullptr;
 
 static void logMsgManaged(char level, const char* message) {
 	coreAPI->LogMessage(level, StringFromAscIIChars(message));
@@ -26,83 +29,101 @@ static void logMsgManaged(char level, const char* message) {
 static void callback_write_ready(void ** data, uint16_t * data_len) {
 	logMsgManaged('M', "CALLBACK:: callback_write_ready");
 
-	// todo attach current thread
-	auto rawData = coreAPI->CallbackWriteReady();
-	*data = rawData->Data;
-	*data_len = rawData->Length;
-	// todo detach current thread
-	/*
+	assert(writeBuffer == nullptr);
 
-	// Get buffer object
-	jobject obj = (*g_env)->CallObjectMethod(g_env, g_reactor_obj, g_reactor_JNICALLBACK_write_ready_mid, NULL);
-	if (obj != NULL)
-	{
-		g_write_buffer_obj = (*g_env)->NewGlobalRef(g_env, obj);
-		assert(g_write_buffer_obj != NULL);
-
-		(*g_env)->DeleteLocalRef(g_env, obj);
-		obj = NULL;
-
-		void * trg_data = (*g_env)->GetDirectBufferAddress(g_env, g_write_buffer_obj);
-		jint pos = (*g_env)->CallIntMethod(g_env, g_write_buffer_obj, g_buffer_position_mid, NULL);
-		jint limit = (*g_env)->CallIntMethod(g_env, g_write_buffer_obj, g_buffer_limit_mid, NULL);
-
-		*data = trg_data + pos;
-		*data_len = limit - pos;
-	}
-
-	if (getEnvStat == JNI_EDETACHED)
-		(*g_java_vm)->DetachCurrentThread(g_java_vm);*/
+	writeBuffer = coreAPI->CallbackWriteReady();
+	*data = writeBuffer->data->Data + writeBuffer->position;
+	*data_len = writeBuffer->limit - writeBuffer->position;
 }
 
 static void callback_read_ready(void ** data, uint16_t * data_len) {
 	logMsgManaged('M', "CALLBACK:: callback_read_ready");
+
+	assert(readBuffer == nullptr);
+	
+	readBuffer = coreAPI->CallbackReadReady();
+	assert(readBuffer->position == 0);
+	*data = readBuffer->data->Data + readBuffer->position;
+	*data_len = readBuffer->capacity - readBuffer->position;
 }
 
 static void callback_frame_received(void * data, uint16_t data_len) {
 	logMsgManaged('M', "CALLBACK:: callback_frame_received");
+
+	assert(readBuffer != nullptr);
+	coreAPI->CallbackFrameReceived(readBuffer, data_len);
+	readBuffer = nullptr;
 }
 
 static void callback_frame_return(void * data) {
 	logMsgManaged('M', "CALLBACK:: callback_frame_return");
+
+	// TODO_RES how to check that data belongs to either read or write buffer??
+	if (readBuffer != nullptr && readBuffer->data[0] == ((byte*)data)[0]) {
+		coreAPI->CallbackFrameReturn(readBuffer);
+		readBuffer = nullptr;
+	}
+	else if (writeBuffer != nullptr && writeBuffer->data[0] == ((byte*)data)[0]) {
+		coreAPI->CallbackFrameReturn(writeBuffer);
+		writeBuffer = nullptr;
+	}
+	else {
+		logMsgManaged('E', "Unknown frame!!!");
+	}
 }
 
 static void callback_worker_request(char worker) {
 	char16 workerChr = worker;
-
 	coreAPI->CallbackWorkerRequest(workerChr);
 }
 
 static double callback_evloop_heartbeat(double now) {
-	return 1;
+	double ret = coreAPI->CallbackEvLoopHeartBeat(now);
+	assert(ret > 0);
+	return ret;
 }
-
 
 // other hooks
 static void callback_evloop_started(void)
 {
 	logMsgManaged('M', "CALLBACK:: callback_evloop_started");
+	coreAPI->CallbackEvloopStarted();
 }
 
 
 static void callback_gwconn_reset(void)
 {
 	logMsgManaged('M', "CALLBACK:: callback_gwconn_reset");
+	coreAPI->CallbackGwconnReset();
 }
 
 static void callback_gwconn_connected(void)
 {
 	logMsgManaged('M', "CALLBACK:: callback_gwconn_connected");
+	coreAPI->CallbackGwconnConnected();
 }
 
 static void callback_state_changed(void)
 {
 	logMsgManaged('M', "CALLBACK:: callback_state_changed");
+	
+	char* buffer = new char[SEACATCC_STATE_BUF_SIZE];
+	seacatcc_state(buffer);
+	auto str = StringFromAscIIChars(buffer);
+	coreAPI->CallbackStateChanged(str);
+	delete[] buffer;
 }
 
 static void callback_clientid_changed(void)
 {
 	logMsgManaged('M', "CALLBACK:: callback_clientid_changed");
+	
+	auto clientId = seacatcc_client_id();
+	auto clientTag = seacatcc_client_tag();
+	auto clientIdStr = StringFromAscIIChars(clientId);
+	auto clientTagStr = StringFromAscIIChars(clientTag);
+
+	coreAPI->CallbackClientidChanged(clientIdStr, clientTagStr);
 }
 
 
@@ -162,6 +183,7 @@ int SeacatBridge::shutdown() {
 }
 
 int SeacatBridge::yield(char16 what) {
+	// TODO_RES why 0xFF ??
 	if (what > 0xFF) return SEACATCC_RC_E_GENERIC;
 	return seacatcc_yield(what);
 }
@@ -169,7 +191,7 @@ int SeacatBridge::yield(char16 what) {
 String^ SeacatBridge::state() {
 	char state_buf[SEACATCC_STATE_BUF_SIZE];
 	seacatcc_state(state_buf);
-	return StringFromAscIICharws(state_buf);
+	return StringFromAscIIChars(state_buf);
 }
 
 void SeacatBridge::ppkgen_worker() {
@@ -189,6 +211,7 @@ int SeacatBridge::csrgen_worker(const Platform::Array<String^>^  params) {
 
 	csr_entries[paramCount] = NULL;
 
+	// TODO_RES should be csr_entries released??
 	rc = seacatcc_csrgen_worker(csr_entries);
 
 	delete[] csr_entries;
@@ -258,5 +281,6 @@ String^  SeacatBridge::client_tag() {
 }
 
 int SeacatBridge::capabilities_store(const Platform::Array<String^>^  capabilities) {
+	// TODO_RES not implemented in core??
 	return 0;
 }

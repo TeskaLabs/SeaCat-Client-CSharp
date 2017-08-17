@@ -4,21 +4,31 @@ namespace seacat_core_bridge
 {
 	using namespace Platform;
 
+	public ref class ByteBuffWrapper sealed {
+	public:
+		property Platform::Array<byte>^ data;
+		property int position;
+		property int limit;
+		property int capacity;
+	};
+
 	[Windows::Foundation::Metadata::WebHostHidden]
 	public interface class ISeacatCoreAPI
 	{
 	public:
 		virtual void LogMessage(char16 level, Platform::String^ message);
 
-		virtual Platform::Array<byte>^ CallbackWriteReady();
+		virtual ByteBuffWrapper^ CallbackWriteReady();
 
-		virtual Platform::Array<byte>^ CallbackReadReady();
+		virtual ByteBuffWrapper^ CallbackReadReady();
 
-		virtual void CallbackFrameReceived(const Platform::Array<byte>^ stream);
+		virtual void CallbackFrameReceived(ByteBuffWrapper^ frame, int frameLength);
 
-		virtual void CallbackFrameReturn(const Platform::Array<byte>^ stream);
+		virtual void CallbackFrameReturn(ByteBuffWrapper^ frame);
 
 		virtual void CallbackWorkerRequest(char16 worker);
+
+		virtual double CallbackEvLoopHeartBeat(double now);
 
 		virtual void CallbackEvloopStarted();
 
@@ -26,9 +36,9 @@ namespace seacat_core_bridge
 
 		virtual void CallbackGwconnConnected();
 		
-		virtual void CallbackStateChanged();
+		virtual void CallbackStateChanged(String^ state);
 
-		virtual void CallbackClientidChanged();
+		virtual void CallbackClientidChanged(String^ clientId, String^ clientTag);
 
 	};
 
