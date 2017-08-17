@@ -20,6 +20,7 @@ namespace seacat_wp_client.Core
         public static int DEFAULT_HIGH_WATER_MARK = 40960;
         public static int DEFAULT_FRAME_CAPACITY = 16 * 1024;
 
+        protected double before = 0;
         private int totalCount = 0;
 
         // Preference keys for this package
@@ -40,22 +41,19 @@ namespace seacat_wp_client.Core
             this.highWaterMark = highWaterMark;
             this.frameCapacity = frameCapacity;
         }
-
-
+        
         public ByteBuffer Borrow(String reason)
         {
             ByteBuffer frame;
-            try
 
+            try
             {
                 lock (stack)
-
                 {
                     frame = stack.Pop();
                 }
             }
             catch (InvalidOperationException e)
-
             {
                 if (totalCount >= highWaterMark) throw new IOException("No more available frames in the pool.");
                 frame = CreateByteBuffer();
@@ -63,7 +61,6 @@ namespace seacat_wp_client.Core
 
             return frame;
         }
-
         
         public void GiveBack(ByteBuffer frame)
         {
@@ -77,13 +74,12 @@ namespace seacat_wp_client.Core
             {
                 frame.Reset();
                 lock (stack)
-            {
+                {
                     stack.Push(frame);
                 }
             }
         }
-
-
+        
         private ByteBuffer CreateByteBuffer()
         {
             lock (this)
@@ -93,8 +89,7 @@ namespace seacat_wp_client.Core
                 return frame;
             }
         }
-
-
+        
         public int Size()
         {
             lock (stack)
@@ -102,23 +97,12 @@ namespace seacat_wp_client.Core
                 return stack.Count();
             }
         }
-
-
-        public int Capacity()
-        {
-            return totalCount;
-        }
-
-        protected double before = 0;
+        
+        public int Capacity() => totalCount;
+        
         public void HeartBeat(double now)
         {
-            /*
-                    if (now > (before + 5))
-                    {
-                        before = now;
-                        Log.d("SeaCat", "FramePool stats / size:"+size()+", capacity:"+capacity());
-                    }
-            */
+
         }
     }
 
