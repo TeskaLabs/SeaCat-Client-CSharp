@@ -11,6 +11,7 @@ namespace seacat_wp_client.Core
 {
     public class FramePool
     {
+        private static string TAG = "FramePool";
         private Stack<ByteBuffer> stack = new Stack<ByteBuffer>();
         private int lowWaterMark;
         private int highWaterMark;
@@ -44,6 +45,7 @@ namespace seacat_wp_client.Core
         
         public ByteBuffer Borrow(String reason)
         {
+            Logger.Debug(TAG, $"Borrowing frame; reason: {reason}");
             ByteBuffer frame;
 
             try
@@ -64,6 +66,8 @@ namespace seacat_wp_client.Core
         
         public void GiveBack(ByteBuffer frame)
         {
+            Logger.Debug(TAG, $"Giving back frame of length: {frame.Length}");
+
             if (totalCount > lowWaterMark)
             {
                 frame.Reset();
@@ -75,7 +79,8 @@ namespace seacat_wp_client.Core
                 frame.Reset();
                 lock (stack)
                 {
-                    stack.Push(frame);
+                    stack.Push(frame); 
+                    Logger.Debug(TAG, $"Frames on the stack: {stack.Count}");
                 }
             }
         }
@@ -85,6 +90,7 @@ namespace seacat_wp_client.Core
             lock (this)
             {
                 Interlocked.Increment(ref totalCount);
+                Logger.Debug(TAG, $"Creating byte buffer; total count: {totalCount}");
                 ByteBuffer frame = new ByteBuffer(frameCapacity);
                 return frame;
             }
@@ -92,7 +98,7 @@ namespace seacat_wp_client.Core
         
         public int Size()
         {
-            lock (stack)
+            lock (this)
             {
                 return stack.Count();
             }

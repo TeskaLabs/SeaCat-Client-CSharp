@@ -49,6 +49,11 @@ namespace seacat_wp_client.Utils
         /// <returns>The minmal element</returns>
         public override TValue Dequeue()
         {
+            if (!Items.Any())
+            {
+                return default(TValue);
+            }
+
             var items = Items;
             var ret = items[0];
             items[0] = items[queue.Count - 1];

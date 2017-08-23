@@ -188,10 +188,12 @@ namespace seacat_wp_client.Core
                         if (provider == null) break;
 
                         bool keep = false; 
-                        FrameResult res = provider.BuildFrame(this, out keep);
-                        frame = res.frame;
+                        frame = provider.BuildFrame(this, out keep);
 
-                        if (keep) providersToKeep.Add(provider);
+                        if (keep)
+                        {
+                            providersToKeep.Add(provider);
+                        }
                     }
 
                     // order is irrelevant since the providers will be reordered in the queue
@@ -445,6 +447,11 @@ namespace seacat_wp_client.Core
 
         private static ByteBuffWrapper CreateWrapper(ByteBuffer buffer)
         {
+            if (buffer == null)
+            {
+                return null;
+            }
+
             ByteBuffWrapper wrapper = new ByteBuffWrapper();
             wrapper.data = buffer.Data;
             wrapper.capacity = buffer.Capacity;

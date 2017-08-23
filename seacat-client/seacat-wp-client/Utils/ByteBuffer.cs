@@ -56,13 +56,14 @@ namespace seacat_wp_client.Utils
 
         public void Flip()
         {
-            Limit = 0;
+            Limit = _pos;
             _pos = 0;
         }
 
         public void Reset()
         {
             _pos = 0;
+            Limit = _buffer.Length;
         }
 
         // Pre-allocated helper arrays for convertion.
@@ -99,7 +100,8 @@ namespace seacat_wp_client.Utils
         // Helper functions for the safe (but slow) access
         protected void Write(int count, ulong data)
         {
-            if (BitConverter.IsLittleEndian)
+            // TODO_RES remove it
+            if (false && BitConverter.IsLittleEndian)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -121,7 +123,9 @@ namespace seacat_wp_client.Utils
         {
             AssertOffsetAndLength(_pos, count);
             ulong r = 0;
-            if (BitConverter.IsLittleEndian)
+
+            // TODO_RES remove it
+            if (false && BitConverter.IsLittleEndian)
             {
                 for (int i = 0; i < count; i++)
                 {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using seacat_wp_client.Utils;
 
 namespace seacat_wp_client.Ping
 {
@@ -24,7 +25,11 @@ namespace seacat_wp_client.Ping
             return now >= deadline;
         }
 
-        public void Pong() { }
+        public void Pong()
+        {
+            Logger.Info("Ping", "===== PONG =====");
+        }
+
         public void Cancel() { }
     }
 

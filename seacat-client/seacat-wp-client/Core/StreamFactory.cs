@@ -159,14 +159,14 @@ namespace seacat_wp_client.Core
             reactor.RegisterFrameProvider(this, true);
         }
 
-        public FrameResult BuildFrame(Reactor reactor, out bool keep)
+        public ByteBuffer BuildFrame(Reactor reactor, out bool keep)
         {
             ByteBuffer frame;
 
             frame = outboundFrameQueue.Dequeue();
             keep = !outboundFrameQueue.IsEmpty();
 
-            return new FrameResult(frame, keep);
+            return frame;
         }
 
         public int GetFrameProviderPriority() => 1;

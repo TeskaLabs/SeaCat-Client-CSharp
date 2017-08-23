@@ -36,8 +36,23 @@ static void callback_write_ready(void ** data, uint16_t * data_len) {
 
 	writeBuffer = coreAPI->CallbackWriteReady();
 	// TODO_RES: why increment by position? --> not implemented yet
-	*data = writeBuffer->data->Data + writeBuffer->position;
-	*data_len = writeBuffer->limit - writeBuffer->position;
+	if (writeBuffer != nullptr) {
+		auto length = writeBuffer->limit - writeBuffer->position;
+		auto output = new char[length];
+
+		// TODO_RES replace with raw pointer!!
+		for (int i = 0; i < length; i++) {
+			output[i] = writeBuffer->data->Data[i];
+		}
+
+		*data = output;
+		//*data = writeBuffer->data->Data + writeBuffer->position;
+		*data_len = writeBuffer->limit - writeBuffer->position;
+	}
+	else {
+		*data = NULL;
+		*data_len = 0;
+	}
 
 	writeBufferDataPtr = *data;
 }

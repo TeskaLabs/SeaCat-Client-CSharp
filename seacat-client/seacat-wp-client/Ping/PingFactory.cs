@@ -70,7 +70,7 @@ namespace seacat_wp_client.Ping
         }
 
 
-        public FrameResult BuildFrame(Reactor reactor, out bool keep)
+        public ByteBuffer BuildFrame(Reactor reactor, out bool keep)
         {
             lock (this)
             {
@@ -82,7 +82,7 @@ namespace seacat_wp_client.Ping
                 if (ping == null)
                 {
                     keep = false;
-                    return new FrameResult(null, false);
+                    return null;
                 }
 
                 // This is pong object (response to gateway)
@@ -99,7 +99,7 @@ namespace seacat_wp_client.Ping
                 frame = reactor.FramePool.Borrow("PingFactory.ping");
                 SPDY.BuildSPD3Ping(frame, ping.PingId);
                 keep = !outboundPingQueue.IsEmpty();
-                return new FrameResult(frame, !outboundPingQueue.IsEmpty());
+                return frame;
             }
         }
 
