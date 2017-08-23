@@ -11,11 +11,9 @@ using System.Threading;
 using seacat_wp_client.Interfaces;
 using System.IO;
 
-namespace seacat_wp_client.Core
-{
+namespace seacat_wp_client.Core {
 
-    public class Reactor : seacat_core_bridge.ISeacatCoreAPI
-    {
+    public class Reactor : seacat_core_bridge.ISeacatCoreAPI {
         private static string TAG = "Reactor";
         private static Reactor _instance;
 
@@ -37,8 +35,7 @@ namespace seacat_wp_client.Core
         private String clientTag = "[AAAAAAAAAAAAAAAA]";
         static String packageName = null;
 
-        public Reactor()
-        {
+        public Reactor() {
 
         }
 
@@ -48,8 +45,7 @@ namespace seacat_wp_client.Core
         public string ProxyPort { get; set; }
 
 
-        public void Init()
-        {
+        public void Init() {
             if (packageName == null) packageName = "seacat_wp_client";
 
             FramePool = new FramePool();
@@ -69,8 +65,7 @@ namespace seacat_wp_client.Core
 
             lastState = Bridge.state();
 
-            var frameProvidersComparator = Comparer<IFrameProvider>.Create((p1, p2) =>
-            {
+            var frameProvidersComparator = Comparer<IFrameProvider>.Create((p1, p2) => {
                 int p1pri = p1.GetFrameProviderPriority();
                 int p2pri = p2.GetFrameProviderPriority();
                 if (p1pri < p2pri) return -1;
@@ -99,48 +94,33 @@ namespace seacat_wp_client.Core
             eventLoopStarted.WaitOne();
         }
 
-        public void Shutdown()
-        {
+        public void Shutdown() {
             Logger.Debug(TAG, "Shutdown");
             int rc = Bridge.shutdown();
             RC.CheckAndThrowIOException("seacatcc.shutdown", rc);
 
-            while (true)
-            {
-                Task.Delay(5000).Wait();
-                // TODO_RES there is no way to interrupt task in WP. There must be a signal sent to inner C loop
-                // wait for CoreThread, it will shutdown once, add timeout
-                if (!ccoreThread.IsCompleted)
-                {
-                    throw new IOException("Core thread is still alive!");
-                }
-
-                break;
+            if (!ccoreThread.Wait(5000)) {
+                throw new IOException("Core thread is still alive!");
             }
         }
 
 
-        private static void _run()
-        {
+        private static void _run() {
             int rc = SeaCatClient.GetReactor().Bridge.run();
-            if (rc != RC.RC_OK)
-            {
+            if (rc != RC.RC_OK) {
                 Logger.Debug(TAG, $"Return code {rc} in seacatcc.run");
             }
         }
 
-        public void RegisterFrameProvider(IFrameProvider provider, bool single)
-        {
-            lock (frameProviders)
-            {
+        public void RegisterFrameProvider(IFrameProvider provider, bool single) {
+            lock (frameProviders) {
                 if ((single) && (frameProviders.Contains(provider))) return;
                 frameProviders.Enqueue(provider);
             }
 
             // Yield to C-Core that we have frame to send
             int rc = Bridge.yield('W');
-            if ((rc > 7900) && (rc < 8000))
-            {
+            if ((rc > 7900) && (rc < 8000)) {
                 Logger.Debug(TAG, $"Return code {rc} in seacatcc.yield");
                 rc = RC.RC_OK;
             }
@@ -150,57 +130,48 @@ namespace seacat_wp_client.Core
 
         // ====== methods called from C++ ====== 
 
-        public void LogMessage(char level, string message)
-        {
-            switch (level)
-            {
+        public void LogMessage(char level, string message) {
+            switch (level) {
                 case 'D':
-                    Logger.Debug("CORE", message);
-                    break;
+                Logger.Debug("CORE", message);
+                break;
                 case 'I':
-                    Logger.Info("CORE", message);
-                    break;
+                Logger.Info("CORE", message);
+                break;
                 case 'E':
-                    Logger.Error("CORE", message);
-                    break;
+                Logger.Error("CORE", message);
+                break;
                 case 'W':
-                    Logger.Warning("CORE", message);
-                    break;
+                Logger.Warning("CORE", message);
+                break;
                 default:
-                    Logger.Info("CORE", message);
-                    break;
+                Logger.Info("CORE", message);
+                break;
             }
         }
 
-        public ByteBuffWrapper CallbackWriteReady()
-        {
+        public ByteBuffWrapper CallbackWriteReady() {
             Logger.Debug(TAG, "CallbackWriteReady");
-            try
-            {
+            try {
                 ByteBuffer frame = null;
                 var providersToKeep = new List<IFrameProvider>();
 
-                lock (frameProviders)
-                {
-                    while (frame == null)
-                    {
+                lock (frameProviders) {
+                    while (frame == null) {
                         IFrameProvider provider = frameProviders.Dequeue();
                         if (provider == null) break;
 
-                        bool keep = false; 
+                        bool keep = false;
                         frame = provider.BuildFrame(this, out keep);
 
-                        if (keep)
-                        {
+                        if (keep) {
                             providersToKeep.Add(provider);
                         }
                     }
 
                     // order is irrelevant since the providers will be reordered in the queue
-                    if (providersToKeep.Any())
-                    {
-                        foreach (var provider in providersToKeep)
-                        {
+                    if (providersToKeep.Any()) {
+                        foreach (var provider in providersToKeep) {
                             frameProviders.Enqueue(provider);
                         }
                     }
@@ -208,32 +179,25 @@ namespace seacat_wp_client.Core
 
                 if (frame != null) frame.Flip();
                 return CreateWrapper(frame);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Logger.Error(TAG, $"Error while WriteReady: {e.Message}");
                 return null;
             }
         }
 
-        public ByteBuffWrapper CallbackReadReady()
-        {
+        public ByteBuffWrapper CallbackReadReady() {
             Logger.Debug(TAG, "CallbackReadReady");
-            try
-            {
+            try {
                 // TODO_REF: what is the purpose of the reason parameter?
                 var buffer = FramePool.Borrow("Reactor.CallbackReadReady");
                 return CreateWrapper(buffer);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Logger.Error(TAG, $"Error while ReadReady {e.Message}");
                 return null;
             }
         }
 
-        public void CallbackFrameReceived(ByteBuffWrapper frameWr, int frameLength)
-        {
+        public void CallbackFrameReceived(ByteBuffWrapper frameWr, int frameLength) {
             Logger.Debug(TAG, $"CallbackFrameReceived {frameLength} length, {frameWr.position} position ");
             int pos = frameWr.position;
             frameWr.position = (pos + frameLength);
@@ -244,61 +208,49 @@ namespace seacat_wp_client.Core
             byte fb = frame.GetByte(0);
             bool giveBackFrame = true;
 
-            try
-            {
-                if ((fb & (1L << 7)) != 0)
-                {
+            try {
+                if ((fb & (1L << 7)) != 0) {
                     giveBackFrame = ReceivedControlFrame(frame);
-                }
-                else
-                {
+                } else {
                     giveBackFrame = streamFactory.ReceivedDataFrame(this, frame);
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Logger.Error(TAG, $"Erorr while receiving frame: {e.Message}");
                 giveBackFrame = true;
-            }
-            finally
-            {
+            } finally {
                 if (giveBackFrame) FramePool.GiveBack(frame);
             }
         }
 
-        public void CallbackFrameReturn(ByteBuffWrapper frame)
-        {
+        public void CallbackFrameReturn(ByteBuffWrapper frame) {
             Logger.Debug(TAG, $"CallbackFrameReturn {frame.data.Length} length, {frame.position} position ");
             FramePool.GiveBack(new ByteBuffer(frame.data, frame.position, frame.limit));
         }
 
-        public void CallbackWorkerRequest(char worker)
-        {
+        public void CallbackWorkerRequest(char worker) {
             Logger.Debug(TAG, "CallbackWorkerRequest : " + worker);
-            switch (worker)
-            {
+            switch (worker) {
                 case 'P':
-                    // call ppkgen worker
-                    new Task(() => Bridge.ppkgen_worker()).Start();
-                    break;
+                // call ppkgen worker
+                new Task(() => Bridge.ppkgen_worker()).Start();
+                break;
                 case 'C':
-                    // create and call csr worker
-                    // TODO_RES: how does ThreadPoolExecutor in Java actually work?
-                    Task CSRWorker = CSR.CreateDefault();
-                    CSRWorker?.Start();
-                    var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_CSR_NEEDED);
-                    EventDispatcher.Dispatcher.SendBroadcast(evt);
-                    break;
+                // create and call csr worker
+                // TODO_RES: how does ThreadPoolExecutor in Java actually work?
+                Task CSRWorker = CSR.CreateDefault();
+                CSRWorker?.Start();
+                var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_CSR_NEEDED);
+                EventDispatcher.Dispatcher.SendBroadcast(evt);
+                break;
                 default:
-                    Logger.Error(TAG, $"Unknown worker requested {worker}");
-                    break;
+                Logger.Error(TAG, $"Unknown worker requested {worker}");
+                break;
             }
         }
 
 
 
-        public double CallbackEvLoopHeartBeat(double now)
-        {
+        public double CallbackEvLoopHeartBeat(double now) {
             // This method is called periodically from event loop (period is fairly arbitrary)
             // Return value of this method represent the longest time when it should be called again
             // It will very likely be called in shorter period too (as a result of heart beat triggered by other events)
@@ -310,8 +262,7 @@ namespace seacat_wp_client.Core
             return 5.0; // Seconds
         }
 
-        public void CallbackEvloopStarted()
-        {
+        public void CallbackEvloopStarted() {
             Logger.Debug(TAG, "CallbackEvloopStarted");
             // TODO_RES: how works reentrant locking for eventLoopNotStartedlock
             Monitor.Enter(eventLoopNotStartedlock);
@@ -323,15 +274,13 @@ namespace seacat_wp_client.Core
             EventDispatcher.Dispatcher.SendBroadcast(evt);
         }
 
-        public void CallbackGwconnConnected()
-        {
+        public void CallbackGwconnConnected() {
             Logger.Debug(TAG, "CallbackGwconnConnected");
             var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_GWCONN_CONNECTED);
             EventDispatcher.Dispatcher.SendBroadcast(evt);
         }
 
-        public void CallbackGwconnReset()
-        {
+        public void CallbackGwconnReset() {
             Logger.Debug(TAG, "CallbackGwconnReset");
             PingFactory.Reset();
             streamFactory.Reset();
@@ -341,8 +290,7 @@ namespace seacat_wp_client.Core
 
         private bool isReady = false;
 
-        public void CallbackStateChanged(string state)
-        {
+        public void CallbackStateChanged(string state) {
             Logger.Debug(TAG, "CallbackStateChanged to " + state);
 
             var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_STATE_CHANGED);
@@ -350,8 +298,7 @@ namespace seacat_wp_client.Core
             evt.PutExtra(SeaCatClient.EXTRA_PREV_STATE, lastState);
             EventDispatcher.Dispatcher.SendBroadcast(evt);
 
-            if ((lastState[0] != 'C') && (state[0] == 'C'))
-            {
+            if ((lastState[0] != 'C') && (state[0] == 'C')) {
                 ConfigureProxyServer(ProxyHost, ProxyPort);
             }
 
@@ -359,20 +306,16 @@ namespace seacat_wp_client.Core
             bool isAnonymous = state[4] == 'A';
             bool isReady = (state[3] == 'Y' && state[4] == 'N' && state[0] != 'f');
 
-            if (isReady)
-            {
+            if (isReady) {
                 this.isReadyHandle.Set();
-            }
-            else
-            {
+            } else {
                 this.isReadyHandle.Reset(); ;
             }
 
             lastState = state;
         }
 
-        public void CallbackClientidChanged(string clientId, string clientTag)
-        {
+        public void CallbackClientidChanged(string clientId, string clientTag) {
             Logger.Debug(TAG, $"CallbackClientidChanged {clientId} : {clientTag}");
             this.clientId = clientId;
             this.clientTag = clientTag;
@@ -382,16 +325,14 @@ namespace seacat_wp_client.Core
             EventDispatcher.Dispatcher.SendBroadcast(evt);
         }
 
-        public void BroadcastState()
-        {
+        public void BroadcastState() {
             var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_STATE_CHANGED);
             evt.PutExtra(SeaCatClient.EXTRA_STATE, Bridge.state());
             evt.PutExtra(SeaCatClient.EXTRA_PREV_STATE, lastState);
             EventDispatcher.Dispatcher.SendBroadcast(evt);
         }
 
-        private bool ReceivedControlFrame(ByteBuffer frame)
-        {
+        private bool ReceivedControlFrame(ByteBuffer frame) {
             int frameVersionType = frame.GetInt() & 0x7fffffff;
 
             int frameLength = frame.GetInt();
@@ -399,8 +340,7 @@ namespace seacat_wp_client.Core
             frameLength &= 0xffffff;
 
             // check if frame is valid
-            if (frameLength + SPDY.HEADER_SIZE != frame.Limit)
-            {
+            if (frameLength + SPDY.HEADER_SIZE != frame.Limit) {
                 Logger.Error(TAG, $"Incorrect frame received: {frame.Limit} {frameVersionType} {frameLength} {frameFlags} - closing connection");
                 // Invalid frame received -> disconnect from a gateway
                 Bridge.yield('d'); // disconnect
@@ -408,8 +348,7 @@ namespace seacat_wp_client.Core
             }
 
             IFrameConsumer consumer = cntlFrameConsumers[frameVersionType];
-            if (consumer == null)
-            {
+            if (consumer == null) {
                 Logger.Error(TAG, $"Unidentified Control frame received: {frame.Limit} {frameVersionType} {frameLength} {frameFlags}");
                 return true;
             }
@@ -417,11 +356,9 @@ namespace seacat_wp_client.Core
             return consumer.ReceivedControlFrame(this, frame, frameVersionType, frameLength, frameFlags);
         }
 
-        protected void ConfigureProxyServer(string proxyHost, string proxyPort)
-        {
+        protected void ConfigureProxyServer(string proxyHost, string proxyPort) {
             // TODO_RES: where to get proxyHost and proxyPort?
-            if (!string.IsNullOrEmpty(proxyHost) && !string.IsNullOrEmpty(proxyPort))
-            {
+            if (!string.IsNullOrEmpty(proxyHost) && !string.IsNullOrEmpty(proxyPort)) {
                 Logger.Debug(TAG, "Reconfiguring proxy server");
                 this.ProxyHost = proxyHost;
                 this.ProxyPort = proxyPort;
@@ -430,25 +367,20 @@ namespace seacat_wp_client.Core
             }
         }
 
-        public String GetClientTag()
-        {
+        public String GetClientTag() {
             return this.clientTag;
         }
 
-        public String GetClientId()
-        {
+        public String GetClientId() {
             return this.clientId;
         }
 
-        public static void SetPackageName(String packageName)
-        {
+        public static void SetPackageName(String packageName) {
             Reactor.packageName = packageName;
         }
 
-        private static ByteBuffWrapper CreateWrapper(ByteBuffer buffer)
-        {
-            if (buffer == null)
-            {
+        private static ByteBuffWrapper CreateWrapper(ByteBuffer buffer) {
+            if (buffer == null) {
                 return null;
             }
 

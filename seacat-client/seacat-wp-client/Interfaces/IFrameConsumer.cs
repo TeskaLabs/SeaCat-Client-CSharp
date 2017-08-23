@@ -7,10 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Interfaces
-{
-    public interface IFrameConsumer
-    {
+namespace seacat_wp_client.Interfaces {
+
+    public interface IFrameConsumer {
         bool ReceivedControlFrame(Reactor reactor, ByteBuffer frame, int frameVersionType, int frameLength, byte frameFlags);
     }
 

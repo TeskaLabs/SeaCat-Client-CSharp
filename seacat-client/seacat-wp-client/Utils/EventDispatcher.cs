@@ -4,20 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Utils
-{
+namespace seacat_wp_client.Utils {
+
     /// <summary>
     /// Event dispatcher that can be used to receive broadcasts from seacat client
     /// </summary>
-    public class EventDispatcher
-    {
+    public class EventDispatcher {
+
         private static EventDispatcher _data;
         public static EventDispatcher Dispatcher => _data ?? (_data = new EventDispatcher());
 
         private readonly List<object> _subscribers = new List<object>();
 
-        private EventDispatcher()
-        {
+        private EventDispatcher() {
 
         }
 
@@ -25,10 +24,8 @@ namespace seacat_wp_client.Utils
         /// Subscribes for sending messages
         /// </summary>
         /// <param name="subscriber"></param>
-        public void Subscribe(object subscriber)
-        {
-            if (!_subscribers.Contains(subscriber))
-            {
+        public void Subscribe(object subscriber) {
+            if (!_subscribers.Contains(subscriber)) {
                 _subscribers.Add(subscriber);
             }
         }
@@ -37,10 +34,8 @@ namespace seacat_wp_client.Utils
         /// Unsubscribes from sending messages
         /// </summary>
         /// <param name="subscriber"></param>
-        public void Unsubscribe(object subscriber)
-        {
-            if (_subscribers.Contains(subscriber))
-            {
+        public void Unsubscribe(object subscriber) {
+            if (_subscribers.Contains(subscriber)) {
                 _subscribers.Remove(subscriber);
             }
         }
@@ -49,21 +44,17 @@ namespace seacat_wp_client.Utils
         /// Sends broadcast message
         /// </summary>
         /// <param name="message"></param>
-        public void SendBroadcast(EventMessage message)
-        {
-            foreach (var subscriber in _subscribers)
-            {
+        public void SendBroadcast(EventMessage message) {
+            foreach (var subscriber in _subscribers) {
                 (subscriber as BroadcastReceiver)?.ReceiveMessage(message);
             }
         }
     }
 
-    public class EventMessage
-    {
+    public class EventMessage {
         private Dictionary<string, object> extras = new Dictionary<string, object>();
 
-        public EventMessage(string type)
-        {
+        public EventMessage(string type) {
             this.EventType = type;
         }
 
@@ -82,8 +73,7 @@ namespace seacat_wp_client.Utils
         public float GetFloat(string key) => extras[key] as float? ?? 0.0f;
     }
 
-    public interface BroadcastReceiver
-    {
+    public interface BroadcastReceiver {
         void ReceiveMessage(EventMessage message);
     }
 }

@@ -7,10 +7,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Core
-{
-    public class FramePool
-    {
+namespace seacat_wp_client.Core {
+    public class FramePool {
         private static string TAG = "FramePool";
         private Stack<ByteBuffer> stack = new Stack<ByteBuffer>();
         private int lowWaterMark;
@@ -29,85 +27,68 @@ namespace seacat_wp_client.Core
         private static String HIGH_WATER_MARK = "highWaterMark";
         private static String FRAME_CAPACITY = "frameCapacity";
 
-        public FramePool()
-        {
+        public FramePool() {
             this.lowWaterMark = DEFAULT_LOW_WATER_MARK;
             this.highWaterMark = DEFAULT_HIGH_WATER_MARK;
             this.frameCapacity = DEFAULT_FRAME_CAPACITY;
         }
 
-        public FramePool(int lowWaterMark, int highWaterMark, int frameCapacity)
-        {
+        public FramePool(int lowWaterMark, int highWaterMark, int frameCapacity) {
             this.lowWaterMark = lowWaterMark;
             this.highWaterMark = highWaterMark;
             this.frameCapacity = frameCapacity;
         }
-        
-        public ByteBuffer Borrow(String reason)
-        {
+
+        public ByteBuffer Borrow(String reason) {
             Logger.Debug(TAG, $"Borrowing frame; reason: {reason}");
             ByteBuffer frame;
 
-            try
-            {
-                lock (stack)
-                {
+            try {
+                lock (stack) {
                     frame = stack.Pop();
                 }
-            }
-            catch (InvalidOperationException e)
-            {
+            } catch (InvalidOperationException e) {
                 if (totalCount >= highWaterMark) throw new IOException("No more available frames in the pool.");
                 frame = CreateByteBuffer();
             }
 
             return frame;
         }
-        
-        public void GiveBack(ByteBuffer frame)
-        {
+
+        public void GiveBack(ByteBuffer frame) {
             Logger.Debug(TAG, $"Giving back frame of length: {frame.Length}");
 
-            if (totalCount > lowWaterMark)
-            {
+            if (totalCount > lowWaterMark) {
                 frame.Reset();
                 Interlocked.Decrement(ref totalCount);
                 // Discard frame
-            }
-            else
-            {
+            } else {
                 frame.Reset();
-                lock (stack)
-                {
-                    stack.Push(frame); 
+                lock (stack) {
+                    stack.Push(frame);
                     Logger.Debug(TAG, $"Frames on the stack: {stack.Count}");
                 }
             }
         }
-        
-        private ByteBuffer CreateByteBuffer()
-        {
-            lock (this)
-            {
+
+        private ByteBuffer CreateByteBuffer() {
+            lock (this) {
                 Interlocked.Increment(ref totalCount);
                 Logger.Debug(TAG, $"Creating byte buffer; total count: {totalCount}");
                 ByteBuffer frame = new ByteBuffer(frameCapacity);
                 return frame;
             }
         }
-        
-        public int Size()
-        {
-            lock (this)
-            {
+
+        public int Size() {
+            lock (this) {
                 return stack.Count();
             }
         }
-        
+
         public int Capacity() => totalCount;
-        
-        public void HeartBeat(double now)
-        {
+
+        public void HeartBeat(double now) {
 
         }
     }

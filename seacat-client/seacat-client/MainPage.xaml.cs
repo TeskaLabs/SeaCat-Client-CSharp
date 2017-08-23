@@ -64,7 +64,6 @@ namespace seacat_client
                 SeaCatClient.GetReactor().isReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");
                 SeaCatClient.Ping();
-
             }).Start();
         }
 

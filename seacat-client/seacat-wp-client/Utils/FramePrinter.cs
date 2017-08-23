@@ -5,35 +5,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Utils
-{
-    public class FramePrinter
-    {
-        static public string FrameToString(ByteBuffer frame)
-        {
+namespace seacat_wp_client.Utils {
+
+    public class FramePrinter {
+
+        static public string FrameToString(ByteBuffer frame) {
             if (frame == null) return "[null]";
 
             byte fb = frame.GetByte(0);
-            if ((fb & (1L << 7)) != 0)
-            {
+            if ((fb & (1L << 7)) != 0) {
                 return ControlFrameToString(frame);
-            }
-
-            else
-            {
+            } else {
                 return DataFrameToString(frame);
             }
         }
 
-        private static string ControlFrameToString(ByteBuffer frame)
-        {
+        private static string ControlFrameToString(ByteBuffer frame) {
             //TODO: This ...
             return "[C??]";
         }
 
 
-        private static string DataFrameToString(ByteBuffer frame)
-        {
+        private static string DataFrameToString(ByteBuffer frame) {
             int streamId = frame.GetInt(0);
             int frameLength = frame.GetInt(4);
             byte frameFlags = (byte)(frameLength >> 24);

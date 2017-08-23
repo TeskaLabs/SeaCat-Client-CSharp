@@ -5,29 +5,25 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client
-{
-    public class CSR
-    {
+namespace seacat_wp_client {
+    public class CSR {
+
         private Dictionary<string, string> paramMap = new Dictionary<string, string>();
 
-        public CSR()
-        {
+        public CSR() {
 
         }
-        
+
         public void Set(string name, string value) => paramMap.Add(name, value);
-        
+
         public string Get(string name) => paramMap[name];
 
-        public string[] ToStringArray()
-        {
+        public string[] ToStringArray() {
             int cnt = paramMap.Count;
             String[] arr = new String[cnt * 2];
 
             int pos = 0;
-            foreach (var key in paramMap.Keys)
-            {
+            foreach (var key in paramMap.Keys) {
                 arr[pos++] = key;
                 arr[pos++] = paramMap[key];
             }
@@ -77,24 +73,18 @@ namespace seacat_wp_client
 
         public void SetData(string data) => this.Set("description", data);
 
-        public void Submit()
-        {
+        public void Submit() {
             int rc = SeaCatClient.GetReactor().Bridge.csrgen_worker(this.ToStringArray());
             RC.CheckAndThrowIOException("seacatcc.csrgen_worker", rc);
         }
 
-        public static Task CreateDefault()
-        {
-            return new Task(() =>
-            {
+        public static Task CreateDefault() {
+            return new Task(() => {
                 CSR csr = new CSR();
 
-                try
-                {
+                try {
                     csr.Submit();
-                }
-                catch (IOException e)
-                {
+                } catch (IOException e) {
                     Logger.Error("CSR", $"Exception in CSR.createDefault: {e.Message}");
                 }
             });

@@ -5,14 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Utils
-{
+namespace seacat_wp_client.Utils {
+
     /// <summary>
     /// Implementation of memory buffer
     /// Buffer starts by default in WRITE mode, until you call the FLIP method, which puts it into READ mode
     /// </summary>
-    public class ByteBuffer
-    {
+    public class ByteBuffer {
+
         private readonly byte[] _buffer;
         private int _pos;  // Must track start of the buffer.
 
@@ -24,18 +24,15 @@ namespace seacat_wp_client.Utils
 
         public ByteBuffer(byte[] buffer) : this(buffer, 0) { }
 
-        public ByteBuffer(byte[] buffer, int pos)
-        {
+        public ByteBuffer(byte[] buffer, int pos) {
             _buffer = buffer;
             _pos = pos;
             // for write mode, the limit is the same as capacity
             Limit = buffer.Length;
         }
 
-        public ByteBuffer(byte[] buffer, int pos, int limit)
-        {
-            if(limit <= pos)
-            {
+        public ByteBuffer(byte[] buffer, int pos, int limit) {
+            if (limit <= pos) {
                 throw new ArgumentException("Limit can't be lower than position");
             }
 
@@ -48,20 +45,17 @@ namespace seacat_wp_client.Utils
 
         public int Capacity { get { return _buffer.Length; } }
 
-        public int Position
-        {
+        public int Position {
             get { return _pos; }
             set { _pos = value; }
         }
 
-        public void Flip()
-        {
+        public void Flip() {
             Limit = _pos;
             _pos = 0;
         }
 
-        public void Reset()
-        {
+        public void Reset() {
             _pos = 0;
             Limit = _buffer.Length;
         }
@@ -73,20 +67,17 @@ namespace seacat_wp_client.Utils
         private ulong[] ulonghelper = new[] { 0UL };
 
         // Helper functions for the unsafe version.
-        static public ushort ReverseBytes(ushort input)
-        {
+        static public ushort ReverseBytes(ushort input) {
             return (ushort)(((input & 0x00FFU) << 8) |
                             ((input & 0xFF00U) >> 8));
         }
-        static public uint ReverseBytes(uint input)
-        {
+        static public uint ReverseBytes(uint input) {
             return ((input & 0x000000FFU) << 24) |
                    ((input & 0x0000FF00U) << 8) |
                    ((input & 0x00FF0000U) >> 8) |
                    ((input & 0xFF000000U) >> 24);
         }
-        static public ulong ReverseBytes(ulong input)
-        {
+        static public ulong ReverseBytes(ulong input) {
             return (((input & 0x00000000000000FFUL) << 56) |
                     ((input & 0x000000000000FF00UL) << 40) |
                     ((input & 0x0000000000FF0000UL) << 24) |
@@ -98,45 +89,33 @@ namespace seacat_wp_client.Utils
         }
 
         // Helper functions for the safe (but slow) access
-        protected void Write(int count, ulong data)
-        {
+        protected void Write(int count, ulong data) {
             // TODO_RES remove it
-            if (false && BitConverter.IsLittleEndian)
-            {
-                for (int i = 0; i < count; i++)
-                {
+            if (false && BitConverter.IsLittleEndian) {
+                for (int i = 0; i < count; i++) {
                     _buffer[_pos++] = (byte)(data >> i * 8);
                 }
-            }
-            else
-            {
+            } else {
                 int offset = _pos;
-                for (int i = 0; i < count; i++)
-                {
+                for (int i = 0; i < count; i++) {
                     _buffer[offset + count - 1 - i] = (byte)(data >> i * 8);
                 }
                 _pos += count;
             }
         }
 
-        protected ulong Read(int count)
-        {
+        protected ulong Read(int count) {
             AssertOffsetAndLength(_pos, count);
             ulong r = 0;
 
             // TODO_RES remove it
-            if (false && BitConverter.IsLittleEndian)
-            {
-                for (int i = 0; i < count; i++)
-                {
+            if (false && BitConverter.IsLittleEndian) {
+                for (int i = 0; i < count; i++) {
                     r |= (ulong)_buffer[_pos++] << i * 8;
                 }
-            }
-            else
-            {
+            } else {
                 int offset = _pos;
-                for (int i = 0; i < count; i++)
-                {
+                for (int i = 0; i < count; i++) {
                     r |= (ulong)_buffer[offset + count - 1 - i] << i * 8;
                 }
                 _pos += count;
@@ -145,55 +124,46 @@ namespace seacat_wp_client.Utils
         }
 
 
-        private void AssertOffsetAndLength(int offset, int length)
-        {
+        private void AssertOffsetAndLength(int offset, int length) {
             if (offset < 0 ||
                 offset > _buffer.Length - length)
                 throw new ArgumentOutOfRangeException();
         }
 
-        public void PutSbyte(sbyte value)
-        {
+        public void PutSbyte(sbyte value) {
             AssertOffsetAndLength(_pos, sizeof(sbyte));
             _buffer[_pos++] = (byte)value;
         }
 
-        public void PutByte(byte value)
-        {
+        public void PutByte(byte value) {
             AssertOffsetAndLength(_pos, sizeof(byte));
             _buffer[_pos++] = value;
         }
 
-        public void PutBytes(byte[] values)
-        {
-            for (int i = 0; i < values.Length; i++)
-            {
+        public void PutBytes(byte[] values) {
+            for (int i = 0; i < values.Length; i++) {
                 AssertOffsetAndLength(_pos, sizeof(byte));
                 _buffer[_pos++] = values[i];
             }
         }
 
 
-        public void PutShort(short value)
-        {
+        public void PutShort(short value) {
             AssertOffsetAndLength(_pos, sizeof(short));
             Write(sizeof(short), (ulong)value);
         }
 
-        public void PutUshort(ushort value)
-        {
+        public void PutUshort(ushort value) {
             AssertOffsetAndLength(_pos, sizeof(ushort));
             Write(sizeof(ushort), (ulong)value);
         }
 
-        public void PutInt(int value)
-        {
+        public void PutInt(int value) {
             AssertOffsetAndLength(_pos, sizeof(int));
             Write(sizeof(int), (ulong)value);
         }
 
-        public void PutInt(int offset, int value)
-        {
+        public void PutInt(int offset, int value) {
             // restore pos value when read
             int temp = _pos;
             _pos = offset;
@@ -203,62 +173,52 @@ namespace seacat_wp_client.Utils
         }
 
 
-        public void PutUint(uint value)
-        {
+        public void PutUint(uint value) {
             AssertOffsetAndLength(_pos, sizeof(uint));
             Write(sizeof(uint), (ulong)value);
         }
 
-        public void PutLong(long value)
-        {
+        public void PutLong(long value) {
             AssertOffsetAndLength(_pos, sizeof(long));
             Write(sizeof(long), (ulong)value);
         }
 
-        public void PutUlong(ulong value)
-        {
+        public void PutUlong(ulong value) {
             AssertOffsetAndLength(_pos, sizeof(ulong));
             Write(sizeof(ulong), value);
         }
 
-        public void PutFloat(float value)
-        {
+        public void PutFloat(float value) {
             AssertOffsetAndLength(_pos, sizeof(float));
             floathelper[0] = value;
             Buffer.BlockCopy(floathelper, 0, inthelper, 0, sizeof(float));
             Write(sizeof(float), (ulong)inthelper[0]);
         }
 
-        public void PutDouble(double value)
-        {
+        public void PutDouble(double value) {
             AssertOffsetAndLength(_pos, sizeof(double));
             doublehelper[0] = value;
             Buffer.BlockCopy(doublehelper, 0, ulonghelper, 0, sizeof(double));
             Write(sizeof(double), ulonghelper[0]);
         }
 
-        public sbyte GetSbyte()
-        {
+        public sbyte GetSbyte() {
             AssertOffsetAndLength(_pos, sizeof(sbyte));
             return (sbyte)_buffer[_pos++];
         }
 
-        public byte GetByte(int offset)
-        {
+        public byte GetByte(int offset) {
             AssertOffsetAndLength(offset, sizeof(byte));
             return _buffer[offset];
         }
 
-        public byte GetByte()
-        {
+        public byte GetByte() {
             AssertOffsetAndLength(_pos, sizeof(byte));
             return _buffer[_pos++];
         }
 
-        public void GetBytes(byte[] buffer, int index, int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
+        public void GetBytes(byte[] buffer, int index, int count) {
+            for (int i = 0; i < count; i++) {
                 buffer[i] = _buffer[index + i];
             }
 
@@ -266,23 +226,19 @@ namespace seacat_wp_client.Utils
             _pos += count;
         }
 
-        public short GetShort()
-        {
+        public short GetShort() {
             return (short)Read(sizeof(short));
         }
 
-        public ushort GetUshort()
-        {
+        public ushort GetUshort() {
             return (ushort)Read(sizeof(ushort));
         }
 
-        public int GetInt()
-        {
+        public int GetInt() {
             return (int)Read(sizeof(int));
         }
 
-        public int GetInt(int offset)
-        {
+        public int GetInt(int offset) {
             // restore pos value when read
             int temp = _pos;
             _pos = offset;
@@ -291,31 +247,26 @@ namespace seacat_wp_client.Utils
             return output;
         }
 
-        public uint GetUint()
-        {
+        public uint GetUint() {
             return (uint)Read(sizeof(uint));
         }
 
-        public long GetLong()
-        {
+        public long GetLong() {
             return (long)Read(sizeof(long));
         }
 
-        public ulong GetUlong()
-        {
+        public ulong GetUlong() {
             return Read(sizeof(ulong));
         }
 
-        public float GetFloat()
-        {
+        public float GetFloat() {
             int i = (int)Read(sizeof(float));
             inthelper[0] = i;
             Buffer.BlockCopy(inthelper, 0, floathelper, 0, sizeof(float));
             return floathelper[0];
         }
 
-        public double GetDouble()
-        {
+        public double GetDouble() {
             ulong i = Read(sizeof(double));
             ulonghelper[0] = i;
             Buffer.BlockCopy(ulonghelper, 0, doublehelper, 0, sizeof(double));

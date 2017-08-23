@@ -8,10 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Core
-{
-    public class SPDY
-    {
+namespace seacat_wp_client.Core {
+    public class SPDY {
         static public int HEADER_SIZE = 8;
 
         static public short CNTL_FRAME_VERSION_SPD3 = 0x03;
@@ -36,8 +34,7 @@ namespace seacat_wp_client.Core
         static public int RST_STREAM_STATUS_INVALID_STREAM = 2;
         static public int RST_STREAM_STATUS_STREAM_ALREADY_CLOSED = 9;
 
-        public static void BuildSPD3Ping(ByteBuffer frame, int pingId)
-        {
+        public static void BuildSPD3Ping(ByteBuffer frame, int pingId) {
             // It is SPDY v3 control frame 
             frame.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
 
@@ -51,8 +48,7 @@ namespace seacat_wp_client.Core
             frame.PutInt(pingId);
         }
 
-        public static void BuildSPD3RstStream(ByteBuffer frame, int streamId, int statusCode)
-        {
+        public static void BuildSPD3RstStream(ByteBuffer frame, int streamId, int statusCode) {
             // It is SPDY v3 control frame 
             frame.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
 
@@ -69,13 +65,11 @@ namespace seacat_wp_client.Core
             frame.PutInt(statusCode);
         }
 
-        public static void BuildALX1SynStream(ByteBuffer buffer, int streamId, Uri url, String method, Headers headers, bool fin_flag, int priority)
-        {
+        public static void BuildALX1SynStream(ByteBuffer buffer, int streamId, Uri url, String method, Headers headers, bool fin_flag, int priority) {
             BuildALX1SynStream(buffer, streamId, url.Host, method, url.AbsolutePath, headers, fin_flag, priority);
         }
 
-        public static void BuildALX1SynStream(ByteBuffer buffer, int streamId, String host, String method, String path, Headers headers, bool fin_flag, int priority)
-        {
+        public static void BuildALX1SynStream(ByteBuffer buffer, int streamId, String host, String method, String path, Headers headers, bool fin_flag, int priority) {
             Debug.Assert((streamId & 0x80000000) == 0);
 
             buffer.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_ALX1));
@@ -90,8 +84,7 @@ namespace seacat_wp_client.Core
 
             // Strip .seacat from hosts
             // That's for historical reason (we need to support .seacat extension this way)
-            if (host.EndsWith(SeaCatInternals.SeaCatHostSuffix))
-            {
+            if (host.EndsWith(SeaCatInternals.SeaCatHostSuffix)) {
                 int lastPeriodPos = host.LastIndexOf('.');
                 if (lastPeriodPos > 0) host = host.Substring(0, lastPeriodPos);
             }
@@ -100,8 +93,7 @@ namespace seacat_wp_client.Core
             AppendVLEString(buffer, method);
             AppendVLEString(buffer, path);
 
-            for (int i = 0; i < headers.Size(); i++)
-            {
+            for (int i = 0; i < headers.Size(); i++) {
                 String header = headers.Name(i);
                 if (header == null) continue;
                 if (header.ToLower() == "host") continue;
@@ -121,8 +113,7 @@ namespace seacat_wp_client.Core
             buffer.PutInt(4, flagLength); // Update length of frame
         }
 
-        public static void BuildDataFrameFlagLength(ByteBuffer buffer, bool fin_flag)
-        {
+        public static void BuildDataFrameFlagLength(ByteBuffer buffer, bool fin_flag) {
             Debug.Assert(buffer != null);
             int flagLength = buffer.Position - HEADER_SIZE;
             Debug.Assert(flagLength < 0x01000000);
@@ -130,36 +121,28 @@ namespace seacat_wp_client.Core
             buffer.PutInt(4, flagLength); // Update length of frame
         }
 
-        private static void AppendVLEString(ByteBuffer buffer, String text)
-        {
+        private static void AppendVLEString(ByteBuffer buffer, String text) {
             byte[] bytes;
-            try
-            {
+            try {
                 bytes = System.Text.Encoding.UTF8.GetBytes(text);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 bytes = new byte[] { (byte)'?', (byte)'?', (byte)'?' };
             }
 
             Debug.Assert(bytes.Length <= 0xFFFF);
 
             // Append length
-            if (bytes.Length >= 0xFA)
-            {
+            if (bytes.Length >= 0xFA) {
                 buffer.PutByte((byte)0xFF);
                 buffer.PutShort((short)bytes.Length);
-            }
-            else
-            {
+            } else {
                 buffer.PutByte((byte)bytes.Length);
             }
 
             buffer.PutBytes(bytes);
         }
 
-        public static String ParseVLEString(ByteBuffer buffer)
-        {
+        public static String ParseVLEString(ByteBuffer buffer) {
             int length = ((short)(buffer.GetByte() & 0xff));
             if (length == 0xFF) length = ((int)(buffer.GetShort() & 0xffff));
 
@@ -168,18 +151,14 @@ namespace seacat_wp_client.Core
             byte[] bytes = new byte[length];
             buffer.GetBytes(bytes, 0, length);
 
-            try
-            {
+            try {
                 return System.Text.Encoding.UTF8.GetString(bytes, 0, length);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 return "???";
             }
         }
 
-        public static int BuildFrameVersionType(short cntlFrameVersion, short cntlType)
-        {
+        public static int BuildFrameVersionType(short cntlFrameVersion, short cntlType) {
             int ret = cntlFrameVersion;
             ret <<= 16;
             ret |= cntlType;

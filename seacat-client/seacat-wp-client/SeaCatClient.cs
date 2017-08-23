@@ -11,15 +11,14 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client
-{
+namespace seacat_wp_client {
 
     /// <summary>
     /// This class represents the main interface of TeskaLabs SeaCat client for Windows Phone (aka WP SeaCat SDK).<br>
     /// It consists exclusively of static methods that provide SeaCat functions.
     /// </summary>
-    public class SeaCatClient
-    {
+    public class SeaCatClient {
+
         private static Reactor reactor = null;
 
         /// <summary>
@@ -70,33 +69,26 @@ namespace seacat_wp_client
         /// SeaCat client needs to be initialized prior any other function is called.<br/>
         /// Please refer to example above.
         /// </summary>
-        public static void Initialize()
-        {
+        public static void Initialize() {
             SeaCatClient.Initialize(CSR.CreateDefault(), null);
         }
 
-        public static void Initialize(string applicationIdSuffix)
-        {
+        public static void Initialize(string applicationIdSuffix) {
             SeaCatClient.Initialize(CSR.CreateDefault(), applicationIdSuffix);
         }
 
-        public static void Initialize(Task CSRworker)
-        {
+        public static void Initialize(Task CSRworker) {
             SeaCatClient.Initialize(CSRworker, null);
         }
 
-        public static void Initialize(Task CSRworker, String applicationIdSuffix)
-        {
+        public static void Initialize(Task CSRworker, String applicationIdSuffix) {
             SeaCatInternals.applicationIdSuffix = applicationIdSuffix;
             SetCSRWorker(CSRworker);
 
-            try
-            {
+            try {
                 reactor = new Reactor();
                 reactor.Init();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 Utils.Logger.Error("SeaCatClient", $"Exception during SeaCat reactor start {e.Message}");
             }
 
@@ -107,14 +99,12 @@ namespace seacat_wp_client
         /// <summary>
         /// Triggers sending of an ACTION_SEACAT_STATE_CHANGED event even if the state has not changed.
         /// </summary>
-        public static void BroadcastState()
-        {
+        public static void BroadcastState() {
             Reactor reactor = GetReactor();
             reactor?.BroadcastState();
         }
 
-        public static Reactor GetReactor()
-        {
+        public static Reactor GetReactor() {
             return SeaCatClient.reactor;
         }
 
@@ -124,13 +114,11 @@ namespace seacat_wp_client
         ///
         /// This function can be used to keep the connection to SeaCat gateway open.
         /// </summary>
-        public static void Ping(Ping.Ping ping)
-        {
+        public static void Ping(Ping.Ping ping) {
             GetReactor().PingFactory.Ping(reactor, ping);
         }
 
-        public static void Ping()
-        {
+        public static void Ping() {
             GetReactor().PingFactory.Ping(reactor, new Ping.Ping() { });
         }
 
@@ -157,8 +145,7 @@ namespace seacat_wp_client
         /// <param name="uri">the URL that represents the resource that created <tt>HttpURLConnection</tt> will point to.</param>
         /// <returns>a new <tt>HttpURLConnection</tt> connection to the resource referred to by this URL.</returns>
         /// </summary>
-        public static HttpClient Open(Uri uri)
-        {
+        public static HttpClient Open(Uri uri) {
             return new SeaCatHttpClient(GetReactor(), uri);
         }
 
@@ -167,8 +154,7 @@ namespace seacat_wp_client
         /// <param name="url">String with the URL that represents the resource that created HttpURLConnection will point to.</param>
         /// <returns> <tt>HttpURLConnection</tt> instance, see <tt>open(URL url)</returns>
         /// </summary>
-        public static HttpClient Open(String url)
-        {
+        public static HttpClient Open(String url) {
             return Open(new Uri(url));
         }
 
@@ -186,8 +172,7 @@ namespace seacat_wp_client
         /// <summary>
         /// Connects to SeaCat gateway
         /// </summary>
-        public static void Connect()
-        {
+        public static void Connect() {
             int rc = reactor.Bridge.yield('c');
             RC.CheckAndThrowIOException("seacatcc.yield(connect)", rc);
         }
@@ -198,8 +183,7 @@ namespace seacat_wp_client
         /// Instruct SeaCat client to close a connection to the SeaCat gateway.
         /// There is only little need to call this function directly, SeaCat client control connection automatically.
         /// </summary>
-        public static void Disconnect()
-        {
+        public static void Disconnect() {
             int rc = reactor.Bridge.yield('d');
             RC.CheckAndThrowIOException("seacatcc.yield(disconnect)", rc);
         }
@@ -210,51 +194,43 @@ namespace seacat_wp_client
         /// Removes client private key and all relevant artifacts such as client certificate.
         /// It puts client state to an initial form, effectively restarts all automated routines to obtain identity via CSR.
         /// </summary>
-        public static void Reset()
-        {
+        public static void Reset() {
             int rc = reactor.Bridge.yield('r');
             RC.CheckAndThrowIOException("seacatcc.yield(reset)", rc);
         }
 
-        public static void Renew()
-        {
+        public static void Renew() {
             int rc = reactor.Bridge.yield('n');
             RC.CheckAndThrowIOException("seacatcc.yield(renew)", rc);
         }
 
-        public static void SetCSRWorker(Task csrWorker)
-        {
+        public static void SetCSRWorker(Task csrWorker) {
             SeaCatInternals.SetCSRWorker(csrWorker);
         }
 
-        public static void SetLogMask(LogFlag mask)
-        {
+        public static void SetLogMask(LogFlag mask) {
             int rc = reactor.Bridge.log_set_mask(mask.Value);
             RC.CheckAndThrowIOException("seacatcc.log_set_mask()", rc);
 
             SeaCatInternals.logDebug = mask.ContainsMask(LogFlag.DEBUG_GENERIC.Value);
         }
 
-        public static void CconfigureSocket(int port, SocketDomain domain, SocketType type, int protocol, string peerAddress, string peerPort)
-        {
+        public static void CconfigureSocket(int port, SocketDomain domain, SocketType type, int protocol, string peerAddress, string peerPort) {
             int rc = reactor.Bridge.socket_configure_worker(port, domain.Value, type.Value, protocol, peerAddress, peerPort);
             RC.CheckAndThrowIOException("seacatcc.socket_configure_worker()", rc);
         }
 
-        public static void SetPackageName(string packageName)
-        {
+        public static void SetPackageName(string packageName) {
             Reactor.SetPackageName(packageName);
         }
 
-        public static string GetClientId()
-        {
+        public static string GetClientId() {
             Reactor r = GetReactor();
             if (r == null) return null;
             return r.GetClientId();
         }
 
-        public static string GetClientTag()
-        {
+        public static string GetClientTag() {
             Reactor r = GetReactor();
             return r?.GetClientTag() ?? null;
         }

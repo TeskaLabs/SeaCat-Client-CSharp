@@ -5,27 +5,24 @@ using System.Collections.Generic;
 using System.Linq;
 using Windows.Security.ExchangeActiveSyncProvisioning;
 
-namespace seacat_wp_client
-{
-    public abstract class SeaCatPlugin
-    {
+namespace seacat_wp_client {
+
+    public abstract class SeaCatPlugin {
+
         private static List<SeaCatPlugin> plugins = new List<SeaCatPlugin>();
         private static bool capabilitiesCommited = false;
 
-        public static void CommitCapabilities()
-        {
+        public static void CommitCapabilities() {
             var deviceInfo = new EasClientDeviceInformation();
             if (capabilitiesCommited) throw new Exception("SeaCat Capabilities are already comitted!");
 
             List<string> caps = new List<string>();
 
-            foreach (var p in plugins)
-            {
+            foreach (var p in plugins) {
                 var pcaps = p.GetCapabilities();
                 if (pcaps == null || !pcaps.Any()) continue;
-                
-                foreach (var tuple in pcaps)
-                {
+
+                foreach (var tuple in pcaps) {
                     caps.Add(String.Format("%s\037%s", tuple.Item1, tuple.Item2));
                 }
             }
@@ -48,10 +45,9 @@ namespace seacat_wp_client
             RC.CheckAndLogError("seacatcc.capabilities_store", rc);
             if (rc == 0) capabilitiesCommited = true;
         }
-        
 
-        public SeaCatPlugin()
-        {
+
+        public SeaCatPlugin() {
             plugins.Add(this);
         }
 
