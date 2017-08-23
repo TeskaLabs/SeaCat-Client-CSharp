@@ -95,7 +95,7 @@ namespace seacat_wp_client
                 }
                 catch (IOException e)
                 {
-                    Logger.Error($"Exception in CSR.createDefault: {e.Message}");
+                    Logger.Error("CSR", $"Exception in CSR.createDefault: {e.Message}");
                 }
             });
         }

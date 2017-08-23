@@ -35,7 +35,7 @@ static void callback_write_ready(void ** data, uint16_t * data_len) {
 	assert(writeBuffer == nullptr);
 
 	writeBuffer = coreAPI->CallbackWriteReady();
-	// TODO_RES: why increment by position?
+	// TODO_RES: why increment by position? --> not implemented yet
 	*data = writeBuffer->data->Data + writeBuffer->position;
 	*data_len = writeBuffer->limit - writeBuffer->position;
 
@@ -49,7 +49,7 @@ static void callback_read_ready(void ** data, uint16_t * data_len) {
 	
 	readBuffer = coreAPI->CallbackReadReady();
 	assert(readBuffer->position == 0);
-	// TODO_RES: why increment by position?
+	// TODO_RES: why increment by position? -> not implemented yet
 	*data = readBuffer->data->Data + readBuffer->position;
 	*data_len = readBuffer->capacity - readBuffer->position;
 
@@ -195,7 +195,7 @@ int SeacatBridge::shutdown() {
 }
 
 int SeacatBridge::yield(char16 what) {
-	// TODO_RES why 0xFF ??
+	// 8 bit max
 	if (what > 0xFF) return SEACATCC_RC_E_GENERIC;
 	return seacatcc_yield(what);
 }
@@ -223,7 +223,7 @@ int SeacatBridge::csrgen_worker(const Platform::Array<String^>^  params) {
 
 	csr_entries[paramCount] = NULL;
 
-	// TODO_RES should be csr_entries released??
+	// TODO_RES should be csr_entries released?? -> yes
 	rc = seacatcc_csrgen_worker(csr_entries);
 
 	delete[] csr_entries;
@@ -250,6 +250,7 @@ int SeacatBridge::log_set_mask(int64 bitmask) {
 }
 
 int SeacatBridge::socket_configure_worker(int port, char16 domain, char16 type, int protocol, String^ peer_address, String^ peer_port) {
+
 	int domain_int = -1;
 	switch (domain)
 	{
@@ -293,6 +294,7 @@ String^  SeacatBridge::client_tag() {
 }
 
 int SeacatBridge::capabilities_store(const Platform::Array<String^>^  capabilities) {
-	// TODO_RES not implemented in core??
+	// TODO_RES not implemented in core?? -> rename
+	//return seacatcc_characteristics_store();
 	return 0;
 }

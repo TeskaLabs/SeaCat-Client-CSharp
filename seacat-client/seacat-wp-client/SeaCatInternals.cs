@@ -12,7 +12,6 @@ namespace seacat_wp_client
     /// </summary>
     public class SeaCatInternals
     {
-        public static String L = "SeaCat";
         public static String SeaCatHostSuffix = ".seacat";
         public static String SeaCatPreferences = "seacat_preferences";
 

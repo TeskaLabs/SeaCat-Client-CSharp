@@ -4,11 +4,13 @@ using seacat_wp_client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Windows.UI.Xaml.Documents;
 
 namespace seacat_wp_client.Ping
 {
     public class PingFactory : IFrameConsumer, IFrameProvider
     {
+        private static string TAG = "PingFactory";
         private IntegerCounter idSequence = new IntegerCounter(1);
         private BlockingQueue<Ping> outboundPingQueue = new BlockingQueue<Ping>();
         private Dictionary<int, Ping> waitingPingDict = new Dictionary<int, Ping>();
@@ -17,6 +19,7 @@ namespace seacat_wp_client.Ping
         {
             lock (this)
             {
+                Logger.Debug(TAG, "Adding ping to the queue");
                 outboundPingQueue.Enqueue(ping);
                 reactor.RegisterFrameProvider(this, true);
             }
@@ -27,6 +30,7 @@ namespace seacat_wp_client.Ping
         {
             lock (this)
             {
+                Logger.Debug(TAG, "Reset");
                 idSequence.Set(1);
 
                 foreach (var key in waitingPingDict.Keys)
@@ -48,6 +52,7 @@ namespace seacat_wp_client.Ping
                     Ping ping = waitingPingDict[key];
                     if (ping.IsExpired(now))
                     {
+                        Logger.Debug(TAG, $"Expired ping with id {ping.PingId}");
                         waitingPingDict.Remove(key);
                         ping.Cancel();
                     }
@@ -65,15 +70,20 @@ namespace seacat_wp_client.Ping
         }
 
 
-        public FrameResult BuildFrame(Reactor reactor)
+        public FrameResult BuildFrame(Reactor reactor, out bool keep)
         {
             lock (this)
             {
+                Logger.Debug(TAG, "BuildFrame");
                 ByteBuffer frame = null;
 
                 //Integer pingId
                 Ping ping = outboundPingQueue.Dequeue();
-                if (ping == null) return new FrameResult(null, false);
+                if (ping == null)
+                {
+                    keep = false;
+                    return new FrameResult(null, false);
+                }
 
                 // This is pong object (response to gateway)
                 if (ping is Pong)
@@ -88,6 +98,7 @@ namespace seacat_wp_client.Ping
 
                 frame = reactor.FramePool.Borrow("PingFactory.ping");
                 SPDY.BuildSPD3Ping(frame, ping.PingId);
+                keep = !outboundPingQueue.IsEmpty();
                 return new FrameResult(frame, !outboundPingQueue.IsEmpty());
             }
         }
@@ -97,6 +108,8 @@ namespace seacat_wp_client.Ping
         {
             lock (this)
             {
+                Logger.Debug(TAG, "ReceivedControlFrame");
+
                 //TODO: pingId is unsigned (based on SPDY specifications)
                 int pingId = frame.GetInt();
                 if ((pingId % 2) == 1)
@@ -106,7 +119,7 @@ namespace seacat_wp_client.Ping
                     waitingPingDict.Remove(pingId);
 
                     if (ping != null) ping.Pong();
-                    else Logger.Warning("received pong with unknown id: " + pingId);
+                    else Logger.Warning(TAG, "received pong with unknown id: " + pingId);
 
                 }
                 else

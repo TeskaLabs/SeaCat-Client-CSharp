@@ -66,7 +66,7 @@ namespace seacat_wp_client.Utils
             int idx = items.IndexOf(value);
             if (idx == -1)
             {
-                Logger.Error("Unknown value! Can't remove from queue");
+                Logger.Error("PBQ", "Unknown value! Can't remove from queue");
             }
 
             items[idx] = items[queue.Count - 1];
@@ -138,7 +138,7 @@ namespace seacat_wp_client.Utils
                 {
                     break; // we're in the right order, so we're done.
                 }
-
+                
                 var tmp = items[node];
                 items[node] = items[smallest];
                 items[smallest] = tmp;

@@ -97,7 +97,7 @@ namespace seacat_wp_client
             }
             catch (IOException e)
             {
-                Utils.Logger.Error(SeaCatInternals.L, $"Exception during SeaCat reactor start {e.Message}");
+                Utils.Logger.Error("SeaCatClient", $"Exception during SeaCat reactor start {e.Message}");
             }
 
             // Process plugins
@@ -240,7 +240,7 @@ namespace seacat_wp_client
             int rc = reactor.Bridge.socket_configure_worker(port, domain.Value, type.Value, protocol, peerAddress, peerPort);
             RC.CheckAndThrowIOException("seacatcc.socket_configure_worker()", rc);
         }
-        
+
         public static void SetPackageName(string packageName)
         {
             Reactor.SetPackageName(packageName);

@@ -19,7 +19,7 @@ namespace seacat_wp_client.Utils
 
         public static void CheckAndLogError(String message, int rc)
         {
-            if (rc != RC_OK) Logger.Error($"SeaCat return code {rc} in {message}");
+            if (rc != RC_OK) Logger.Error("CORE", $"SeaCat return code {rc} in {message}");
         }
 
     }

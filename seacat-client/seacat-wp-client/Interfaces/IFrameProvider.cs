@@ -9,7 +9,7 @@ namespace seacat_wp_client.Interfaces
 {
     public interface IFrameProvider
     {
-        FrameResult BuildFrame(Reactor reactor);
+        FrameResult BuildFrame(Reactor reactor, out bool keep);
         int GetFrameProviderPriority();
     }
 }

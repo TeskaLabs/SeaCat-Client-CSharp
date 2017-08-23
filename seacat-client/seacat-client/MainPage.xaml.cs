@@ -19,6 +19,7 @@ using seacat_wp_client;
 using System.Net.Http;
 using seacat_wp_client.Core;
 using System.Threading.Tasks;
+using seacat_wp_client.Utils;
 
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
@@ -60,6 +61,10 @@ namespace seacat_client
             {
                 DeleteSeacatDirAsync().Wait();
                 SeaCatClient.Initialize();
+                SeaCatClient.GetReactor().isReadyHandle.WaitOne();
+                Logger.Debug("Seacat", "====== SEACAT IS READY ======");
+                SeaCatClient.Ping();
+
             }).Start();
         }
 

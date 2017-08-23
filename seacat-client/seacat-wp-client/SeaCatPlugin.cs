@@ -48,8 +48,7 @@ namespace seacat_wp_client
             RC.CheckAndLogError("seacatcc.capabilities_store", rc);
             if (rc == 0) capabilitiesCommited = true;
         }
-
-        ///
+        
 
         public SeaCatPlugin()
         {

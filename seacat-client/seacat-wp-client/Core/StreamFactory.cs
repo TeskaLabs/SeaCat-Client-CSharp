@@ -14,6 +14,7 @@ namespace seacat_wp_client.Core
 
     public class StreamFactory : IFrameConsumer, IFrameProvider
     {
+        private static string TAG = "StreamFactory";
         private IntegerCounter streamIdSequence = new IntegerCounter(1); // Synchronized access via streams!
         private Dictionary<int, IStream> streams = new Dictionary<int, IStream>(); // Synchronized access!
         private BlockingQueue<ByteBuffer> outboundFrameQueue = new BlockingQueue<ByteBuffer>(); // Access to this element has to be synchronized
@@ -68,7 +69,7 @@ namespace seacat_wp_client.Core
             IStream stream = GetStream(streamId);
             if (stream == null)
             {
-                Logger.Error($"ReceivedALX1_SYN_REPLY stream not found {streamId} (can be closed already)");
+                Logger.Error(TAG, $"ReceivedALX1_SYN_REPLY stream not found {streamId} (can be closed already)");
                 frame.Reset();
                 SendRST_STREAM(frame, reactor, streamId, SPDY.RST_STREAM_STATUS_INVALID_STREAM);
                 return false;
@@ -86,7 +87,7 @@ namespace seacat_wp_client.Core
             IStream stream = GetStream(streamId);
             if (stream == null)
             {
-                Logger.Error($"receivedSPD3_RST_STREAM stream not found: {streamId} (can be closed already)");
+                Logger.Error(TAG, $"receivedSPD3_RST_STREAM stream not found: {streamId} (can be closed already)");
                 return true;
             }
 
@@ -103,7 +104,7 @@ namespace seacat_wp_client.Core
             IStream stream = GetStream(streamId);
             if (stream == null)
             {
-                Logger.Error($"receivedDataFrame stream not found: {streamId} (can be closed already)");
+                Logger.Error(TAG, $"receivedDataFrame stream not found: {streamId} (can be closed already)");
                 frame.Reset();
                 SendRST_STREAM(frame, reactor, streamId, SPDY.RST_STREAM_STATUS_INVALID_STREAM);
                 return false;
@@ -131,7 +132,7 @@ namespace seacat_wp_client.Core
             }
             else
             {
-                Logger.Error($"StreamFactory.receivedControlFrame cannot handle frame: {frameVersionType}");
+                Logger.Error(TAG, $"StreamFactory.receivedControlFrame cannot handle frame: {frameVersionType}");
                 return true;
             }
         }
@@ -148,7 +149,7 @@ namespace seacat_wp_client.Core
             catch (IOException e)
             {
                 reactor.FramePool.GiveBack(frame); // Return frame
-                Logger.Error(e.Message);
+                Logger.Error(TAG, e.Message);
             }
         }
 
@@ -158,9 +159,8 @@ namespace seacat_wp_client.Core
             reactor.RegisterFrameProvider(this, true);
         }
 
-        public FrameResult BuildFrame(Reactor reactor)
+        public FrameResult BuildFrame(Reactor reactor, out bool keep)
         {
-            bool keep;
             ByteBuffer frame;
 
             frame = outboundFrameQueue.Dequeue();

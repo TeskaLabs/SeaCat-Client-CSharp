@@ -79,7 +79,7 @@ namespace seacat_wp_client.Core
             Debug.Assert((streamId & 0x80000000) == 0);
 
             buffer.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_ALX1));
-            buffer.PutShort(CNTL_TYPE_SYN_STREAM); // Type
+            buffer.PutShort(CNTL_TYPE_SYN_STREAM);      // Type
             buffer.PutInt(0x04030201);                  // Flags and length (placeholder)
             buffer.PutInt(streamId);                    // Stream ID
             buffer.PutInt(0);                           // Associated-To-Stream-ID - not used
