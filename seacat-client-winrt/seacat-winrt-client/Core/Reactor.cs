@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using seacat_core_bridge;
+using seacat_winrt_bridge;
 using Windows.Storage;
 using Windows.ApplicationModel;
-using seacat_wp_client.Utils;
-using seacat_wp_client.Ping;
+using seacat_winrt_client.Utils;
+using seacat_winrt_client.Ping;
 using System.Threading;
-using seacat_wp_client.Interfaces;
+using seacat_winrt_client.Interfaces;
 using System.IO;
 
-namespace seacat_wp_client.Core {
+namespace seacat_winrt_client.Core {
 
-    public class Reactor : seacat_core_bridge.ISeacatCoreAPI {
+    public class Reactor : seacat_winrt_bridge.ISeacatCoreAPI {
         private static string TAG = "Reactor";
         private static Reactor _instance;
 
@@ -46,7 +46,7 @@ namespace seacat_wp_client.Core {
 
 
         public void Init() {
-            if (packageName == null) packageName = "seacat_wp_client";
+            if (packageName == null) packageName = "seacat_winrt_client";
 
             FramePool = new FramePool();
             // works as a background thread by default

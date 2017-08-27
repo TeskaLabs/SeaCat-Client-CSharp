@@ -1,5 +1,5 @@
-﻿using seacat_wp_client.Http;
-using seacat_wp_client.Utils;
+﻿using seacat_winrt_client.Http;
+using seacat_winrt_client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Core {
+namespace seacat_winrt_client.Core {
     public class SPDY {
         static public int HEADER_SIZE = 8;
 

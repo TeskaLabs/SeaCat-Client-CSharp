@@ -1,11 +1,11 @@
-﻿using seacat_wp_client.Core;
-using seacat_wp_client.Utils;
+﻿using seacat_winrt_client.Core;
+using seacat_winrt_client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.Security.ExchangeActiveSyncProvisioning;
 
-namespace seacat_wp_client {
+namespace seacat_winrt_client {
 
     public abstract class SeaCatPlugin {
 
@@ -34,8 +34,8 @@ namespace seacat_wp_client {
             caps.Add(String.Format("%s\037%s", "plp", deviceInfo.SystemProductName));
 
             // Add hardware capabilities
-            caps.Add(String.Format("%s\037%s", "hwb", deviceInfo.SystemFirmwareVersion));
-            caps.Add(String.Format("%s\037%s", "hwd", deviceInfo.SystemHardwareVersion));
+            //caps.Add(String.Format("%s\037%s", "hwb", deviceInfo.SystemFirmwareVersion));
+            //caps.Add(String.Format("%s\037%s", "hwd", deviceInfo.SystemHardwareVersion));
 
             String[] caparr = new String[caps.Count];
 

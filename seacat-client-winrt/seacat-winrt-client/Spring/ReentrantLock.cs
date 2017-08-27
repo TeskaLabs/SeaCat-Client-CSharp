@@ -26,7 +26,7 @@ using System.Threading;
 using Spring.Threading.Helpers;
 using System.Threading.Tasks;
 using Windows.System.Threading;
-using seacat_wp_client.Utils;
+using seacat_winrt_client.Utils;
 
 namespace Spring.Threading.Locks
 {

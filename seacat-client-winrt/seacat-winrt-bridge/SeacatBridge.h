@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace seacat_core_bridge
+namespace seacat_winrt_bridge
 {
 	using namespace Platform;
 

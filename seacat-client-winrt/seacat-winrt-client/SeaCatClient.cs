@@ -1,7 +1,7 @@
-﻿using seacat_wp_client.Core;
-using seacat_wp_client.Http;
-using seacat_wp_client.Socket;
-using seacat_wp_client.Utils;
+﻿using seacat_winrt_client.Core;
+using seacat_winrt_client.Http;
+using seacat_winrt_client.Socket;
+using seacat_winrt_client.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client {
+namespace seacat_winrt_client {
 
     /// <summary>
     /// This class represents the main interface of TeskaLabs SeaCat client for Windows Phone (aka WP SeaCat SDK).<br>
@@ -88,12 +88,11 @@ namespace seacat_wp_client {
             try {
                 reactor = new Reactor();
                 reactor.Init();
+                // Process plugins
+                SeaCatPlugin.CommitCapabilities();
             } catch (IOException e) {
                 Utils.Logger.Error("SeaCatClient", $"Exception during SeaCat reactor start {e.Message}");
             }
-
-            // Process plugins
-            SeaCatPlugin.CommitCapabilities();
         }
 
         /// <summary>

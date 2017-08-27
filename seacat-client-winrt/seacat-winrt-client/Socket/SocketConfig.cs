@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Socket {
+namespace seacat_winrt_client.Socket {
 
     public class SocketDomain {
 

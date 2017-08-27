@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Utils {
+namespace seacat_winrt_client.Utils {
 
     /// <summary>
     /// Event dispatcher that can be used to receive broadcasts from seacat client

@@ -21,7 +21,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using seacat_wp_client.Utils;
+using seacat_winrt_client.Utils;
 
 namespace Spring.Threading.Helpers
 {

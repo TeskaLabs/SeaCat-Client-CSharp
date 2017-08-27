@@ -10,7 +10,7 @@ extern "C" {
 #include "seacatcc.h"
 }
 
-using namespace seacat_core_bridge;
+using namespace seacat_winrt_bridge;
 using namespace Platform;
 using namespace std;
 
@@ -241,7 +241,7 @@ int SeacatBridge::csrgen_worker(const Platform::Array<String^>^  params) {
 	// TODO_RES should be csr_entries released?? -> yes
 	rc = seacatcc_csrgen_worker(csr_entries);
 
-	delete[] csr_entries;
+	//delete[] csr_entries;
 	return rc;
 }
 
@@ -291,7 +291,7 @@ int SeacatBridge::socket_configure_worker(int port, char16 domain, char16 type, 
 		return SEACATCC_RC_E_INVALID_ARGS;
 	}
 
-	const char * peerAddressChar = ConstCharFromString(peer_address)->c_str();
+	const char * peerAddressChar = ConstCharFromString(peer_address)->c_str();	
 	const char * peerPortChar = ConstCharFromString(peer_port)->c_str();
 	int rc = seacatcc_socket_configure_worker(port, domain_int, sock_type_int, protocol, peerAddressChar, peerPortChar);
 

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Utils {
+namespace seacat_winrt_client.Utils {
 
     /// <summary>
     /// Blocking queue that uses linked list 

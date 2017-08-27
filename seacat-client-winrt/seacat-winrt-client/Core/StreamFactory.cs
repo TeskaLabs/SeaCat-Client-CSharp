@@ -1,5 +1,5 @@
-﻿using seacat_wp_client.Interfaces;
-using seacat_wp_client.Utils;
+﻿using seacat_winrt_client.Interfaces;
+using seacat_winrt_client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_wp_client.Core {
+namespace seacat_winrt_client.Core {
 
     public class StreamFactory : IFrameConsumer, IFrameProvider {
         private static string TAG = "StreamFactory";

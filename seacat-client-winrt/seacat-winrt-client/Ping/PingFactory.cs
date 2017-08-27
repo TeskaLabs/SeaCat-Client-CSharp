@@ -1,12 +1,12 @@
-﻿using seacat_wp_client.Core;
-using seacat_wp_client.Interfaces;
-using seacat_wp_client.Utils;
+﻿using seacat_winrt_client.Core;
+using seacat_winrt_client.Interfaces;
+using seacat_winrt_client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.UI.Xaml.Documents;
 
-namespace seacat_wp_client.Ping {
+namespace seacat_winrt_client.Ping {
 
     public class PingFactory : IFrameConsumer, IFrameProvider {
 
