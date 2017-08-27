@@ -47,7 +47,8 @@ namespace seacat_winrt_client.Http {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken) {
             this.uri = request.RequestUri;
-            this.inboundStream.SetReadTimeout(HttpClient.Timeout.Milliseconds);
+            this.request = request;
+            this.inboundStream = new InboundStream(reactor, HttpClient.Timeout.Milliseconds);
 
             var tsk = new Task<HttpResponseMessage>(() => {
                 var msg = new HttpResponseMessage();
@@ -182,10 +183,10 @@ namespace seacat_winrt_client.Http {
 
                 // If there is outbound stream, launch that
                 if (outboundStream != null) {
-                    Debug.Assert((frame.GetShort(4) & SPDY.FLAG_FIN) == 0);
+                    Debug.Assert((frame.GetByte(4) & SPDY.FLAG_FIN) == 0);
                     outboundStream.Launch(streamId);
                 } else {
-                    Debug.Assert((frame.GetShort(4) & SPDY.FLAG_FIN) == SPDY.FLAG_FIN);
+                    Debug.Assert((frame.GetByte(4) & SPDY.FLAG_FIN) == SPDY.FLAG_FIN);
                 }
 
                 keep = false;
