@@ -144,8 +144,12 @@ namespace seacat_winrt_client {
         /// <param name="uri">the URL that represents the resource that created <tt>HttpURLConnection</tt> will point to.</param>
         /// <returns>a new <tt>HttpURLConnection</tt> connection to the resource referred to by this URL.</returns>
         /// </summary>
-        public static HttpClient Open(Uri uri) {
-            return new SeaCatHttpClient(GetReactor(), uri);
+        public static HttpClient Open(Uri uri)
+        {
+            var handler = new SeacatHttpClientHandler(GetReactor(), 3);
+            var client = new HttpClient(handler);
+            handler.HttpClient = client;
+            return client;
         }
 
         /// <summary>

@@ -50,12 +50,17 @@ namespace seacat_demoapp
                 SeaCatClient.GetReactor().isReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");
 
-                while (true) {
-                    SeaCatClient.Ping();
-                    Task.Delay(1000).Wait();
-                }
+                var client = SeaCatClient.Open("http://jsonplaceholder.typicode.com/posts/1");
+                new Task(DownloadUrl).Start();
 
             }).Start();
+        }
+
+        protected async void DownloadUrl()
+        {
+            var client = SeaCatClient.Open("http://jsonplaceholder.typicode.com/posts/1");
+            var msg = await client.GetStringAsync("http://jsonplaceholder.typicode.com/posts/1");
+            bool dummy = false;
         }
 
         /// <summary>

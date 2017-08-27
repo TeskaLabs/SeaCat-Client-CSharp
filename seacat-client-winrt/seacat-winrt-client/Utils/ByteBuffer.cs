@@ -50,6 +50,14 @@ namespace seacat_winrt_client.Utils {
             set { _pos = value; }
         }
 
+        public void Clear()
+        {
+            _pos = 0;
+            Limit = Capacity;
+        }
+
+        public int Remaining => Limit - Position;
+
         public void Flip() {
             Limit = _pos;
             _pos = 0;
@@ -225,6 +233,16 @@ namespace seacat_winrt_client.Utils {
             // this is strange, however the same logic is implemented in Java
             _pos += count;
         }
+
+        public short GetShort(int offset) {
+            // restore pos value when read
+            int temp = _pos;
+            _pos = offset;
+            var output = (short)Read(sizeof(short));
+            _pos = temp;
+            return output;
+        }
+
 
         public short GetShort() {
             return (short)Read(sizeof(short));

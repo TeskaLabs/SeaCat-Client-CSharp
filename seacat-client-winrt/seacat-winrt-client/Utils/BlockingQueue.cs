@@ -56,7 +56,25 @@ namespace seacat_winrt_client.Utils {
                     return default(T);
                 while (queue.Count == 0) {
                     Monitor.Wait(queue);
+
                     if (stopped)
+                        return default(T);
+                }
+                return queue.Dequeue();
+            }
+        }
+
+        public virtual T Dequeue(int timeoutMillis, out bool success) {
+            success = true;
+            if (stopped)
+                return default(T);
+            lock (queue) {
+                if (stopped)
+                    return default(T);
+                while (queue.Count == 0) {
+                    success = Monitor.Wait(queue, timeoutMillis);
+
+                    if (!success || stopped)
                         return default(T);
                 }
                 return queue.Dequeue();
@@ -73,6 +91,7 @@ namespace seacat_winrt_client.Utils {
                 Monitor.PulseAll(queue);
             }
         }
+        
 
         public virtual void Remove(T item) {
             queue.Remove(item);

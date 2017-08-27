@@ -53,7 +53,7 @@ namespace seacat_winrt_bridge
 
 		int shutdown();
 
-		int yield(char16 what);
+		int yield(char16 what);	
 
 		String^ state();
 

@@ -10,6 +10,7 @@ using seacat_winrt_client.Ping;
 using System.Threading;
 using seacat_winrt_client.Interfaces;
 using System.IO;
+using System.Net.Http;
 
 namespace seacat_winrt_client.Core {
 

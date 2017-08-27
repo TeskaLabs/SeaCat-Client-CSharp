@@ -107,8 +107,11 @@
     <Compile Include="Core\StreamFactory.cs" />
     <Compile Include="CSR.cs" />
     <Compile Include="Http\Headers.cs" />
-    <Compile Include="Http\SeaCatHttpClient.cs" />
-    <Compile Include="Http\SeacatHttpHandler.cs" />
+    <Compile Include="Http\HttpClientHandler.cs" />
+    <Compile Include="Http\HttpFrameContent.cs" />
+    <Compile Include="Http\HttpStatus.cs" />
+    <Compile Include="Http\InboundStream.cs" />
+    <Compile Include="Http\OutboundStream.cs" />
     <Compile Include="Interfaces\IFrameConsumer.cs" />
     <Compile Include="Interfaces\IFrameProvider.cs" />
     <Compile Include="Interfaces\IStream.cs" />
