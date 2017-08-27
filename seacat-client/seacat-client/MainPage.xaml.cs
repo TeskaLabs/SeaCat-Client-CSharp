@@ -59,11 +59,17 @@ namespace seacat_client
 
             new Task(() =>
             {
-                DeleteSeacatDirAsync().Wait();
+                //DeleteSeacatDirAsync().Wait();
                 SeaCatClient.Initialize();
                 SeaCatClient.GetReactor().isReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");
-                SeaCatClient.Ping();
+
+                while (true)
+                {
+                    SeaCatClient.Ping();
+                    Task.Delay(1000).Wait();
+                }
+               
             }).Start();
         }
 

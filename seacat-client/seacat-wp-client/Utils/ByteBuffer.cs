@@ -90,36 +90,36 @@ namespace seacat_wp_client.Utils {
 
         // Helper functions for the safe (but slow) access
         protected void Write(int count, ulong data) {
-            // TODO_RES remove it
-            if (false && BitConverter.IsLittleEndian) {
-                for (int i = 0; i < count; i++) {
-                    _buffer[_pos++] = (byte)(data >> i * 8);
-                }
-            } else {
+            // Use network byte order -> BigEndian
+            //if (BitConverter.IsLittleEndian) {
+            //    for (int i = 0; i < count; i++) {
+            //        _buffer[_pos++] = (byte)(data >> i * 8);
+            //    }
+            //} else {
                 int offset = _pos;
                 for (int i = 0; i < count; i++) {
                     _buffer[offset + count - 1 - i] = (byte)(data >> i * 8);
                 }
                 _pos += count;
-            }
+            // }
         }
 
         protected ulong Read(int count) {
             AssertOffsetAndLength(_pos, count);
             ulong r = 0;
 
-            // TODO_RES remove it
-            if (false && BitConverter.IsLittleEndian) {
-                for (int i = 0; i < count; i++) {
-                    r |= (ulong)_buffer[_pos++] << i * 8;
-                }
-            } else {
+            // Use network byte order -> BigEndian
+            //if (BitConverter.IsLittleEndian) {
+            //    for (int i = 0; i < count; i++) {
+            //        r |= (ulong)_buffer[_pos++] << i * 8;
+            //    }
+            //} else {
                 int offset = _pos;
                 for (int i = 0; i < count; i++) {
                     r |= (ulong)_buffer[offset + count - 1 - i] << i * 8;
                 }
                 _pos += count;
-            }
+            //}
             return r;
         }
 
