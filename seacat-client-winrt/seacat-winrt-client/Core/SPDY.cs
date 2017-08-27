@@ -149,10 +149,12 @@ namespace seacat_winrt_client.Core {
             Debug.Assert(length >= 0);
 
             byte[] bytes = new byte[length];
-            buffer.GetBytes(bytes, 0, length);
+            buffer.GetBytes(bytes, buffer.Position, length);
 
-            try {
-                return System.Text.Encoding.UTF8.GetString(bytes, 0, length);
+            try
+            {
+                var output = System.Text.UTF8Encoding.UTF8.GetString(bytes, 0, length);
+                return output;
             } catch (Exception e) {
                 return "???";
             }
