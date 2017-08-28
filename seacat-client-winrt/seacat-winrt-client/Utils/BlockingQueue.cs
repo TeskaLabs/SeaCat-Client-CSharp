@@ -36,6 +36,7 @@ namespace seacat_winrt_client.Utils {
             return queue.Items.Contains(item);
         }
 
+
         public virtual bool Enqueue(T item) {
             if (stopped)
                 return false;

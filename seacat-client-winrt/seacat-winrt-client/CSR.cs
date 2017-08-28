@@ -79,7 +79,7 @@ namespace seacat_winrt_client {
         }
 
         public static Task CreateDefault() {
-            return new Task(() => {
+            return TaskHelper.CreateTask("CSR", () => {
                 CSR csr = new CSR();
 
                 try {

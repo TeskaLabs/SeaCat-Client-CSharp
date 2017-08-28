@@ -81,6 +81,9 @@ namespace seacat_winrt_client.Http {
             long cutOfTimeMillis = DateTimeOffset.Now.Millisecond + timeoutMillis;
 
             while (currentFrame == null) {
+
+                TaskHelper.CheckInterrupt();
+
                 long awaitMillis = cutOfTimeMillis - DateTimeOffset.Now.Millisecond;
                 if (awaitMillis <= 0) throw new TimeoutException($"Read timeout: {this.readTimeoutMillis}");
 
@@ -88,7 +91,7 @@ namespace seacat_winrt_client.Http {
                 currentFrame = frameQueue.Dequeue((int)awaitMillis, out success);
 
                 if (!success) {
-                    // TODO_RES Thread.CurrentThread.Interrupt
+                    TaskHelper.AbortCurrentTask();
                     continue;
                 }
 
@@ -133,7 +136,7 @@ namespace seacat_winrt_client.Http {
         }
 
         public override Task FlushAsync(CancellationToken cancellationToken) {
-            var tsk = new Task(() => { });
+            var tsk = TaskHelper.CreateTask("Flush", () => { });
             tsk.Start();
             return tsk;
         }
@@ -152,7 +155,7 @@ namespace seacat_winrt_client.Http {
         }
 
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) {
-            var tsk = new Task<int>(() => {
+            var tsk = TaskHelper.CreateTask<int>("Read inbound", () => {
                 // TODO_REF use cancellation token
                 Read(buffer, offset, count);
                 return count;

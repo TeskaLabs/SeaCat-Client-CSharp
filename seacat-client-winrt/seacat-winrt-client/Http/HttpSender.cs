@@ -71,7 +71,7 @@ namespace seacat_winrt_client.Http {
 
             Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} URI: {this.uri}");
 
-            var tsk = new Task<HttpResponseMessage>(() => {
+            var tsk = TaskHelper.CreateTask<HttpResponseMessage>("HTTP Task", () => {
                 // wait for response stream
                 var inputStream = GetInputStream();
 

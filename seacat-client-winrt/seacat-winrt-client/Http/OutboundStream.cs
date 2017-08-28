@@ -77,18 +77,6 @@ namespace seacat_winrt_client.Http {
                     }
 
                     res = frameQueue.Enqueue(aFrame);
-
-                    /*
-                    TODO_RES: use waiting timeout    
-                
-                    bool success;
-                    res = frameQueue.Enqueue(aFrame, awaitMillis, out success);
-
-
-                    if (!success) {
-                        // TODO_RES Thread.CurrentThread.Interrupt
-                        continue;
-                    }*/
                 }
 
                 if (this.streamId != -1) reactor.RegisterFrameProvider(this, true);
@@ -133,7 +121,7 @@ namespace seacat_winrt_client.Http {
         }
 
         public override Task FlushAsync(CancellationToken cancellationToken) {
-            var tsk = new Task(Flush);
+            var tsk = TaskHelper.CreateTask("Flush", Flush);
             tsk.Start();
             return tsk;
         }
@@ -174,7 +162,7 @@ namespace seacat_winrt_client.Http {
         }
 
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) {
-            var tsk = new Task<int>(() => {
+            var tsk = TaskHelper.CreateTask<int>("Write outbound", () => {
                 // TODO_REF use cancellation token
                 Write(buffer, offset, count);
                 return count;

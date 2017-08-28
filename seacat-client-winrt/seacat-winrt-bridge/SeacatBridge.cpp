@@ -35,7 +35,6 @@ static void callback_write_ready(void ** data, uint16_t * data_len) {
 	assert(writeBuffer == nullptr);
 
 	writeBuffer = coreAPI->CallbackWriteReady();
-	// TODO_RES: why increment by position? --> not implemented yet
 	if (writeBuffer != nullptr) {
 		auto length = writeBuffer->limit - writeBuffer->position;
 		
@@ -57,7 +56,6 @@ static void callback_read_ready(void ** data, uint16_t * data_len) {
 	
 	readBuffer = coreAPI->CallbackReadReady();
 	assert(readBuffer->position == 0);
-	// TODO_RES: why increment by position? -> not implemented yet
 	*data = readBuffer->data->Data + readBuffer->position;
 	*data_len = readBuffer->capacity - readBuffer->position;
 
@@ -76,7 +74,6 @@ static void callback_frame_received(void * data, uint16_t data_len) {
 static void callback_frame_return(void * data) {
 	logMsgManaged('M', "CALLBACK:: callback_frame_return");
 
-	// TODO_RES: is this correct?
 	if (readBuffer != nullptr && readBufferDataPtr != nullptr && data == readBufferDataPtr) {
 		coreAPI->CallbackFrameReturn(readBuffer);
 		readBuffer = nullptr;
@@ -222,7 +219,7 @@ int SeacatBridge::csrgen_worker(const Platform::Array<String^>^  params) {
 	int i, rc;
 	int paramCount = params->Length;
 	
-	const char** csr_entries = new const char*[paramCount];
+	const char** csr_entries = new const char*[paramCount+1];
 
 	for (i = 0; i<paramCount; i++)
 	{
@@ -231,10 +228,9 @@ int SeacatBridge::csrgen_worker(const Platform::Array<String^>^  params) {
 
 	csr_entries[paramCount] = NULL;
 
-	// TODO_RES should be csr_entries released?? -> yes
 	rc = seacatcc_csrgen_worker(csr_entries);
 
-	//delete[] csr_entries;
+	delete[] csr_entries;
 	return rc;
 }
 
@@ -302,7 +298,18 @@ String^  SeacatBridge::client_tag() {
 }
 
 int SeacatBridge::capabilities_store(const Platform::Array<String^>^  capabilities) {
-	// TODO_RES not implemented in core?? -> rename
-	//return seacatcc_characteristics_store();
-	return 0;
+	const char** cStore = new const char*[capabilities->Length+1];
+
+	for (int i = 0; i<capabilities->Length; i++)
+	{
+		cStore[i] = ConstCharFromString(capabilities[i])->c_str();
+	}
+
+	cStore[capabilities->Length] = NULL;
+
+	int rc = seacatcc_characteristics_store(cStore);
+
+	delete[] cStore;
+
+	return rc;
 }

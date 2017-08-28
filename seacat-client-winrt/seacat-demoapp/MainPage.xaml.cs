@@ -43,13 +43,13 @@ namespace seacat_demoapp {
         public MainPage() {
             this.InitializeComponent();
 
-            new Task(() => {
+            TaskHelper.CreateTask("MainPage", () => {
                 //DeleteSeacatDirAsync().Wait();
                 SeaCatClient.Initialize();
                 SeaCatClient.GetReactor().isReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");
 
-                new Task(DownloadUrl).Start();
+                TaskHelper.CreateTask("Download", DownloadUrl).Start();
 
             }).Start();
         }
@@ -58,7 +58,7 @@ namespace seacat_demoapp {
 
             var client = SeaCatClient.Open();
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 2; i++) {
                 GetAsync(client, i * 2);
                 PostAsync(client, i * 2 + 1);
             }

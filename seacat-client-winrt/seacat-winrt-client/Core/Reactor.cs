@@ -51,7 +51,7 @@ namespace seacat_winrt_client.Core {
 
             FramePool = new FramePool();
             // works as a background thread by default
-            this.ccoreThread = new Task(() => _run());
+            this.ccoreThread = TaskHelper.CreateTask("CoreThread", () => _run());
 
             Bridge = new SeacatBridge();
 
@@ -98,8 +98,10 @@ namespace seacat_winrt_client.Core {
         public void Shutdown() {
             Logger.Debug(TAG, "Shutdown");
             int rc = Bridge.shutdown();
+            
             RC.CheckAndThrowIOException("seacatcc.shutdown", rc);
 
+            TaskHelper.AbortTask(ccoreThread);
             if (!ccoreThread.Wait(5000)) {
                 throw new IOException("Core thread is still alive!");
             }
@@ -152,6 +154,8 @@ namespace seacat_winrt_client.Core {
         }
 
         public ByteBuffWrapper CallbackWriteReady() {
+            TaskHelper.CheckInterrupt();
+
             Logger.Debug(TAG, "CallbackWriteReady");
             try {
                 ByteBuffer frame = null;
@@ -187,6 +191,8 @@ namespace seacat_winrt_client.Core {
         }
 
         public ByteBuffWrapper CallbackReadReady() {
+            TaskHelper.CheckInterrupt();
+
             Logger.Debug(TAG, "CallbackReadReady");
             try {
                 // TODO_REF: what is the purpose of the reason parameter?
@@ -199,6 +205,8 @@ namespace seacat_winrt_client.Core {
         }
 
         public void CallbackFrameReceived(ByteBuffWrapper frameWr, int frameLength) {
+            TaskHelper.CheckInterrupt();
+
             Logger.Debug(TAG, $"CallbackFrameReceived {frameLength} length, {frameWr.position} position ");
             int pos = frameWr.position;
             frameWr.position = (pos + frameLength);
@@ -224,20 +232,23 @@ namespace seacat_winrt_client.Core {
         }
 
         public void CallbackFrameReturn(ByteBuffWrapper frame) {
+            TaskHelper.CheckInterrupt();
+
             Logger.Debug(TAG, $"CallbackFrameReturn {frame.data.Length} length, {frame.position} position ");
             FramePool.GiveBack(new ByteBuffer(frame.data, frame.position, frame.limit));
         }
 
         public void CallbackWorkerRequest(char worker) {
+            TaskHelper.CheckInterrupt();
+
             Logger.Debug(TAG, "CallbackWorkerRequest : " + worker);
             switch (worker) {
                 case 'P':
                 // call ppkgen worker
-                new Task(() => Bridge.ppkgen_worker()).Start();
+                TaskHelper.CreateTask("PPkGen worker", () => Bridge.ppkgen_worker()).Start();
                 break;
                 case 'C':
                 // create and call csr worker
-                // TODO_RES: how does ThreadPoolExecutor in Java actually work?
                 Task CSRWorker = CSR.CreateDefault();
                 CSRWorker?.Start();
                 var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_CSR_NEEDED);
@@ -265,7 +276,6 @@ namespace seacat_winrt_client.Core {
 
         public void CallbackEvloopStarted() {
             Logger.Debug(TAG, "CallbackEvloopStarted");
-            // TODO_RES: how works reentrant locking for eventLoopNotStartedlock
             Monitor.Enter(eventLoopNotStartedlock);
             eventLoopStarted.Set();
             Monitor.Exit(eventLoopNotStartedlock);
