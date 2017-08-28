@@ -109,6 +109,7 @@
     <Compile Include="Http\Headers.cs" />
     <Compile Include="Http\HttpClientHandler.cs" />
     <Compile Include="Http\HttpFrameContent.cs" />
+    <Compile Include="Http\HttpSender.cs" />
     <Compile Include="Http\HttpStatus.cs" />
     <Compile Include="Http\InboundStream.cs" />
     <Compile Include="Http\OutboundStream.cs" />

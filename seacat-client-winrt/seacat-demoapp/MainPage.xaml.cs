@@ -20,13 +20,11 @@ using seacat_winrt_client.Utils;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
-namespace seacat_demoapp
-{
+namespace seacat_demoapp {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MainPage : Page
-    {
+    public sealed partial class MainPage : Page {
         public async Task<bool> DeleteSeacatDirAsync() {
             try {
                 var allf = await ApplicationData.Current.LocalFolder.GetFoldersAsync();
@@ -50,22 +48,55 @@ namespace seacat_demoapp
                 SeaCatClient.Initialize();
                 SeaCatClient.GetReactor().isReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");
-                
+
                 new Task(DownloadUrl).Start();
 
             }).Start();
         }
 
-        protected async void DownloadUrl()
-        {
-            var realTest = new HttpClient();
-            var realMsg = await realTest.GetStringAsync("http://jsonplaceholder.typicode.com/posts/1");
+        protected async void DownloadUrl() {
 
-            var client = SeaCatClient.Open("http://jsonplaceholder.seacat/posts/1");
-            var msg = await client.GetStringAsync("http://jsonplaceholder.seacat/posts/1");
+            var postString = "{\"userId\": 1, \"id\": 1, \"title\": \"HELLO WORLD\", \"body\": \"Hello Post message\"}";
 
+            /*
+                var realTest = new HttpClient();
+                var realMsg = await realTest.GetStringAsync("http://jsonplaceholder.typicode.com/posts/1");
+
+                var realPost = await realTest.PostAsync(new Uri("http://jsonplaceholder.typicode.com/posts"), new StringContent(postString));
+
+                realPost.EnsureSuccessStatusCode();
+                string responseBody = await realPost.Content.ReadAsStringAsync();
+            */
+
+            using (var client = SeaCatClient.Open("http://jsonplaceholder.seacat/posts/1")) {
+                for (int i = 0; i < 10; i++)
+                {
+                    GetAsync(client);
+                    PostAsync(client, postString);
+                }
+            }
 
             bool dummy = false;
+        }
+
+        protected async void GetAsync(HttpClient client) {
+            var getResp = await client.GetAsync("http://jsonplaceholder.seacat/posts/1");
+            var strResp = await getResp.Content.ReadAsStringAsync();
+
+            IEnumerable<string> handlerIds = new List<string>();
+            getResp.Content.Headers.TryGetValues("HANDLER-ID", out handlerIds);
+
+            Logger.Debug($"===== {handlerIds.First()} RESPONSE BODY::", strResp);
+        }
+
+        protected async void PostAsync(HttpClient client, string requestMsg) {
+            var msg = await client.PostAsync("http://jsonplaceholder.seacat/posts", new StringContent(requestMsg));
+
+            IEnumerable<string> handlerIds = new List<string>();
+            msg.Content.Headers.TryGetValues("HANDLER-ID", out handlerIds);
+
+            var stringMsg = await msg.Content.ReadAsStringAsync();
+            Logger.Debug($"===== {handlerIds.First()} RESPONSE BODY::", stringMsg);
         }
 
         /// <summary>

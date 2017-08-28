@@ -73,7 +73,6 @@ namespace seacat_winrt_client.Http {
                 else if (currentFrame.Remaining == 0) {
                     reactor.FramePool.GiveBack(currentFrame);
                     currentFrame = null;
-                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{handlerId} Frame read to the end");
                 } else return currentFrame;
             }
 
@@ -206,7 +205,7 @@ namespace seacat_winrt_client.Http {
         public override bool CanWrite => false;
 
         public virtual int Capacity {
-            get { return GetCurrentFrame().Capacity; }
+            get { throw new NotImplementedException("Not implemented!"); }
             set {
                 throw new NotImplementedException("Not implemented!");
             }
