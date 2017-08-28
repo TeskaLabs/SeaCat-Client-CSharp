@@ -103,13 +103,15 @@ namespace seacat_winrt_client.Http {
         }
 
         public void Reset() {
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Reset stream");
             Dispose();
-            // TODO_RES -> should be ready? 
+            
+            responseCode = HttpStatusCode.InternalServerError;
+            responseMessage = HttpStatus.GetMessage(500);
             responseReady.Set();
         }
 
         public void Dispose() {
-            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Reset stream");
             if (outboundStream != null) { outboundStream.Reset(); }
             inboundStream.Reset();
         }
@@ -205,17 +207,7 @@ namespace seacat_winrt_client.Http {
         public ByteBuffer BuildFrame(Reactor reactor, out bool keep) {
             lock (this) {
                 Debug.Assert(this.reactor == reactor);
-
-                // TODO_RES distinguish fixed content length
-
-                //TODO_RES: which request property belongs to windows?
-                AddRequestProperty("X-SC-SDK", "win");
-
-                // Add If-Modified-Since header
-                // TODO_RES -> where to get this attribute?
-                //long ifModifiedSince = getIfModifiedSince();
-                //if (ifModifiedSince != 0) addRequestProperty("If-Modified-Since", HttpDate.format(new Date(ifModifiedSince)));
-
+                
                 bool fin_flag = (outboundStream == null);
 
                 ByteBuffer frame = reactor.FramePool.Borrow("HttpClientHandler.buildSYN_STREAM");
@@ -227,7 +219,7 @@ namespace seacat_winrt_client.Http {
                 SPDY.BuildALX1SynStream(frame, streamId, uri, request.Method.Method, GetRequestHeaders(), fin_flag,
                     this.priority);
 
-                // TODO_RES : is it working in Java?
+
                 // If there is outbound stream, launch that
                 if (outboundStream != null) {
                     Debug.Assert((frame.GetByte(4) & SPDY.FLAG_FIN) == 0);
@@ -311,7 +303,7 @@ namespace seacat_winrt_client.Http {
             }
         }
 
-        public void SetRequestProperty(String field, String newValue) {
+        public void SetRequestProperty(string field, string newValue) {
             lock (this) {
                 //TODO: Consider this: if (stage >= HEADER_SENT) throw new IllegalStateException("Cannot set request property after connection is made");
                 if (field == null) {
@@ -331,7 +323,7 @@ namespace seacat_winrt_client.Http {
             }
         }
 
-        public void AddRequestProperty(String field, String newValue) {
+        public void AddRequestProperty(string field, string newValue) {
             lock (this) {
                 //TODO: Consider this: if (stage >= HEADER_SENT) throw new IllegalStateException("Cannot set request property after connection is made");
 
@@ -351,7 +343,6 @@ namespace seacat_winrt_client.Http {
                 requestHeaders.Add(field, newValue);
             }
         }
-
 
         public int GetStreamId() { return streamId; }
     }
