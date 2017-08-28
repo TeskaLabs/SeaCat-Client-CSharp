@@ -44,9 +44,9 @@ namespace seacat_winrt_client.Http {
         private string responseMessage;
         private HttpRequestMessage request;
         private System.Net.Http.HttpClient client;
+        private CancellationToken cancellationToken;
 
-        public HttpSender(System.Net.Http.HttpClient client, Reactor reactor, int priority)
-        {
+        public HttpSender(System.Net.Http.HttpClient client, Reactor reactor, int priority) {
             this.client = client;
             this.reactor = reactor;
             this.priority = priority;
@@ -65,6 +65,8 @@ namespace seacat_winrt_client.Http {
             CancellationToken cancellationToken) {
             this.uri = request.RequestUri;
             this.request = request;
+            this.cancellationToken = cancellationToken;
+
             this.inboundStream = new InboundStream(reactor, HandlerId, client.Timeout.Milliseconds);
 
             Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} URI: {this.uri}");
@@ -81,9 +83,12 @@ namespace seacat_winrt_client.Http {
                 response.Content.Headers.Add("HANDLER-ID", HandlerId.ToString());
 #endif
 
-                foreach (var name in responseHeaders.Names()) {
-                    // Add() may throw an exception, because some headers aren't supported
-                    response.Headers.TryAddWithoutValidation(name, responseHeaders.Get(name));
+                if (responseHeaders != null) {
+                    foreach (var name in responseHeaders.Names()) {
+                        // Add() may throw an exception, because some headers aren't supported
+                        response.Headers.TryAddWithoutValidation(name,
+                            responseHeaders.Get(name));
+                    }
                 }
 
                 return response;
@@ -93,6 +98,17 @@ namespace seacat_winrt_client.Http {
             return tsk;
         }
 
+        public void Reset() {
+            Dispose();
+            // TODO_RES -> should be ready?
+            responseReady.Set();
+        }
+
+        public void Dispose() {
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Reset stream");
+            if (outboundStream != null) { outboundStream.Reset(); }
+            inboundStream.Reset();
+        }
 
         private void Launch() {
             if (!launched) {
@@ -228,13 +244,9 @@ namespace seacat_winrt_client.Http {
             return this.priority;
         }
 
-        public void Reset() {
-            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Reset stream");
-            if (outboundStream != null) { outboundStream.Reset(); }
-            inboundStream.Reset();
-        }
 
         public bool ReceivedALX1_SYN_REPLY(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {
+
             lock (this) {
                 //TODO: Check stage - should disregards frames that come prior proper state
 

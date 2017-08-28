@@ -121,46 +121,14 @@ namespace seacat_winrt_client {
             GetReactor().PingFactory.Ping(reactor, new Ping.Ping() { });
         }
 
-        /// <summary>
-        /// The Windows Phone compatible HTTP client interface.
-        ///
-        /// Executes HTTP/HTTPS call via SeaCat gateway.
-        ///
-        /// Example:
-        /// URL url = new URL("https://backendhost.seacat/remote-api");
-        /// HttpURLConnection conn = SeaCatClient.open(url);
-        ///
-        /// InputStream is = conn.getInputStream();
-        /// String line;
-        /// String result = "";
-        /// BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        /// while ((line = rd.readLine()) != null) {
-        ///      result += line;
-        /// }
-        /// rd.close();
-        /// is.close();
-        /// }
-        ///
-        /// <param name="uri">the URL that represents the resource that created <tt>HttpURLConnection</tt> will point to.</param>
-        /// <returns>a new <tt>HttpURLConnection</tt> connection to the resource referred to by this URL.</returns>
-        /// </summary>
-        public static HttpClient Open(Uri uri)
+
+        public static HttpClient Open()
         {
             var handler = new SeacatHttpClientHandler(GetReactor(), 3);
             var client = new HttpClient(handler);
             handler.HttpClient = client;
             return client;
         }
-
-        /// <summary>
-        /// This is a convenience function that translates string URL into Windows Phone URL and calls Open(URL url) method of this class.
-        /// <param name="url">String with the URL that represents the resource that created HttpURLConnection will point to.</param>
-        /// <returns> <tt>HttpURLConnection</tt> instance, see <tt>open(URL url)</returns>
-        /// </summary>
-        public static HttpClient Open(String url) {
-            return Open(new Uri(url));
-        }
-
 
         /// <summary>
         /// Obtains the state string describing operational conditions of a SeaCat client.

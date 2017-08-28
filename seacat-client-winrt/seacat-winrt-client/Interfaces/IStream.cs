@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace seacat_winrt_client.Interfaces {
 
     public interface IStream {
+
         void Reset();
 
         // reply -> opens a stream

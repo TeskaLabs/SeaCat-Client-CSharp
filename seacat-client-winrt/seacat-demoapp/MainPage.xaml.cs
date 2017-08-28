@@ -58,25 +58,14 @@ namespace seacat_demoapp {
 
             var postString = "{\"userId\": 1, \"id\": 1, \"title\": \"HELLO WORLD\", \"body\": \"Hello Post message\"}";
 
-            /*
-                var realTest = new HttpClient();
-                var realMsg = await realTest.GetStringAsync("http://jsonplaceholder.typicode.com/posts/1");
+            var client = SeaCatClient.Open();
 
-                var realPost = await realTest.PostAsync(new Uri("http://jsonplaceholder.typicode.com/posts"), new StringContent(postString));
-
-                realPost.EnsureSuccessStatusCode();
-                string responseBody = await realPost.Content.ReadAsStringAsync();
-            */
-
-            using (var client = SeaCatClient.Open("http://jsonplaceholder.seacat/posts/1")) {
-                for (int i = 0; i < 10; i++)
-                {
-                    GetAsync(client);
-                    PostAsync(client, postString);
-                }
+            for (int i = 0; i < 10; i++) {
+                GetAsync(client);
+                PostAsync(client, postString);
             }
-
-            bool dummy = false;
+            
+            //client.Dispose();
         }
 
         protected async void GetAsync(HttpClient client) {
@@ -85,8 +74,10 @@ namespace seacat_demoapp {
 
             IEnumerable<string> handlerIds = new List<string>();
             getResp.Content.Headers.TryGetValues("HANDLER-ID", out handlerIds);
+            var handlerId = handlerIds != null ? handlerIds.FirstOrDefault() : "--";
 
-            Logger.Debug($"===== {handlerIds.First()} RESPONSE BODY::", strResp);
+            Logger.Debug($"===== {handlerId} RESPONSE BODY::", strResp);
+
         }
 
         protected async void PostAsync(HttpClient client, string requestMsg) {
@@ -96,7 +87,8 @@ namespace seacat_demoapp {
             msg.Content.Headers.TryGetValues("HANDLER-ID", out handlerIds);
 
             var stringMsg = await msg.Content.ReadAsStringAsync();
-            Logger.Debug($"===== {handlerIds.First()} RESPONSE BODY::", stringMsg);
+            var handlerId = handlerIds != null ? handlerIds.FirstOrDefault() : "--";
+            Logger.Debug($"===== {handlerId} RESPONSE BODY::", stringMsg);
         }
 
         /// <summary>

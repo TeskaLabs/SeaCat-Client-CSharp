@@ -12,7 +12,7 @@ using seacat_winrt_client.Utils;
 
 namespace seacat_winrt_client.Http {
 
-    public class OutboundStream : MemoryStream, IFrameProvider {
+    public class OutboundStream : Stream, IFrameProvider {
 
         private Reactor reactor;
         private int streamId = -1;
@@ -214,21 +214,6 @@ namespace seacat_winrt_client.Http {
                 GetCurrentFrame().Position = (int)value;
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         public ByteBuffer BuildFrame(Reactor reactor, out bool keep) {
             keep = false;
