@@ -6,7 +6,6 @@
 
 extern "C" {
 #include "alts/windows/all_windows.h"
-#define SEACATCC_API extern
 #include "seacatcc.h"
 }
 
