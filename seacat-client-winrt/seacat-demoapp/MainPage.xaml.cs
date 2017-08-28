@@ -56,20 +56,18 @@ namespace seacat_demoapp {
 
         protected async void DownloadUrl() {
 
-            var postString = "{\"userId\": 1, \"id\": 1, \"title\": \"HELLO WORLD\", \"body\": \"Hello Post message\"}";
-
             var client = SeaCatClient.Open();
 
             for (int i = 0; i < 10; i++) {
-                GetAsync(client);
-                PostAsync(client, postString);
+                GetAsync(client, i * 2);
+                PostAsync(client, i * 2 + 1);
             }
-            
+
             //client.Dispose();
         }
 
-        protected async void GetAsync(HttpClient client) {
-            var getResp = await client.GetAsync("http://jsonplaceholder.seacat/posts/1");
+        protected async void GetAsync(HttpClient client, int id) {
+            var getResp = await client.GetAsync("http://jsonplaceholder.seacat/posts/" + id.ToString());
             var strResp = await getResp.Content.ReadAsStringAsync();
 
             IEnumerable<string> handlerIds = new List<string>();
@@ -80,8 +78,11 @@ namespace seacat_demoapp {
 
         }
 
-        protected async void PostAsync(HttpClient client, string requestMsg) {
-            var msg = await client.PostAsync("http://jsonplaceholder.seacat/posts", new StringContent(requestMsg));
+        protected async void PostAsync(HttpClient client, int id) {
+
+            var postString = "{\"userId\": 1, \"id\": " + id + ", \"title\": \"HELLO WORLD\", \"body\": \"Hello Post message\"}";
+
+            var msg = await client.PostAsync("http://jsonplaceholder.seacat/posts", new StringContent(postString));
 
             IEnumerable<string> handlerIds = new List<string>();
             msg.Content.Headers.TryGetValues("HANDLER-ID", out handlerIds);

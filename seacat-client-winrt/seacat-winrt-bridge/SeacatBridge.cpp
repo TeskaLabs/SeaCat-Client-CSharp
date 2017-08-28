@@ -38,15 +38,8 @@ static void callback_write_ready(void ** data, uint16_t * data_len) {
 	// TODO_RES: why increment by position? --> not implemented yet
 	if (writeBuffer != nullptr) {
 		auto length = writeBuffer->limit - writeBuffer->position;
-		auto output = new char[length];
-
-		// TODO_RES replace with raw pointer!!
-		for (int i = 0; i < length; i++) {
-			output[i] = writeBuffer->data->Data[i];
-		}
-
-		*data = output;
-		//*data = writeBuffer->data->Data + writeBuffer->position;
+		
+		*data = writeBuffer->data->Data + writeBuffer->position;
 		*data_len = writeBuffer->limit - writeBuffer->position;
 	}
 	else {
