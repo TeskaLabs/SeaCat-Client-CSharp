@@ -46,7 +46,6 @@ namespace seacat_winrt_client.Http {
 
                 if (currentFrame == null) {
                     currentFrame = reactor.FramePool.Borrow("HttpOutputStream.getCurrentFrame");
-                    // TODO_RES Make sure that there is a space for DATA header
                     currentFrame.Position = SPDY.HEADER_SIZE;
                 }
 
@@ -164,7 +163,14 @@ namespace seacat_winrt_client.Http {
         }
 
         public override void Write(byte[] buffer, int offset, int count) {
-            throw new NotImplementedException("Not implemented!");
+            if (closed) throw new IOException("OutputStream is already closed");
+
+            ByteBuffer frame = GetCurrentFrame();
+            if (frame == null) throw new IOException("Frame not available");
+            frame.PutBytes(buffer);
+            contentLength += count;
+
+            if (frame.Remaining == 0) FlushCurrentFrame(false);
         }
 
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) {

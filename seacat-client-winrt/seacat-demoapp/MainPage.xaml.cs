@@ -67,7 +67,7 @@ namespace seacat_demoapp {
         }
 
         protected async void GetAsync(HttpClient client, int id) {
-            var getResp = await client.GetAsync("http://jsonplaceholder.seacat/posts/" + id.ToString());
+            var getResp = await client.GetAsync("http://jsonplaceholder.seacat/posts/" + id.ToString() + "/comments");
             var strResp = await getResp.Content.ReadAsStringAsync();
 
             IEnumerable<string> handlerIds = new List<string>();
