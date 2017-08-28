@@ -11,26 +11,32 @@ using seacat_winrt_client.Utils;
 
 namespace seacat_winrt_client.Http {
 
-    public class InboundStream : MemoryStream {
+    public class InboundStream : Stream {
 
         private Reactor reactor;
         private int streamId = -1;
+        private int currentPosition = 0;
+
 
         // TODO: Allow parametrization of LinkedBlockingQueue capacity
         private BlockingQueue<ByteBuffer> frameQueue = new BlockingQueue<ByteBuffer>();
         private ByteBuffer currentFrame = null;
         private bool closed = false;
 
+        private int handlerId;
+
         int readTimeoutMillis = 30 * 1000;
 
         static private ByteBuffer QUEUE_IS_CLOSED = new ByteBuffer(0);
 
-        public InboundStream(Reactor reactor, int readTimeoutMillis) {
+        public InboundStream(Reactor reactor, int handlerId, int readTimeoutMillis) {
+            this.handlerId = handlerId;
             this.reactor = reactor;
             this.readTimeoutMillis = readTimeoutMillis;
         }
 
         ~InboundStream() {
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{handlerId} Destroying inbound stream");
             if (currentFrame != null) {
                 reactor.FramePool.GiveBack(currentFrame);
                 currentFrame = null;
@@ -51,20 +57,23 @@ namespace seacat_winrt_client.Http {
             if (closed) {
                 // This stream is closed -> send RST_STREAM back
                 frame.Clear();
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{handlerId} Sending STREAM_ALREADY_CLOSED");
                 reactor.streamFactory.SendRST_STREAM(frame, reactor, this.streamId, SPDY.RST_STREAM_STATUS_STREAM_ALREADY_CLOSED);
                 return false;
             }
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{handlerId} Adding frame of length {frame.Length} into queue");
             frameQueue.Enqueue(frame);
             return false; // We will return frame to pool on our own
         }
 
-        protected ByteBuffer GetCurrentFrame() {
+        public ByteBuffer GetCurrentFrame() {
             if (currentFrame != null) {
                 if (currentFrame == QUEUE_IS_CLOSED) return null;
 
                 else if (currentFrame.Remaining == 0) {
                     reactor.FramePool.GiveBack(currentFrame);
                     currentFrame = null;
+                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{handlerId} Frame read to the end");
                 } else return currentFrame;
             }
 
@@ -121,6 +130,7 @@ namespace seacat_winrt_client.Http {
 
         public override void Flush() {
             // nothing to do here
+            bool dummy = false;
         }
 
         public override Task FlushAsync(CancellationToken cancellationToken) {
@@ -133,10 +143,12 @@ namespace seacat_winrt_client.Http {
             if (offset < 0 || count < 0 || offset + count > buffer.Length) throw new IndexOutOfRangeException();
 
             ByteBuffer frame = GetCurrentFrame();
-            if (frame == null) return -1;
+            if (frame == null) return 0;
 
             if (count > frame.Remaining) count = frame.Remaining;
-            frame.GetBytes(buffer, offset, count);
+            frame.GetBytes(buffer, frame.Position + offset, count); // start at current position maybe??
+            // current position is calculated to all frames relatively
+            currentPosition += count;
             return count;
         }
 
@@ -154,22 +166,13 @@ namespace seacat_winrt_client.Http {
         public override int ReadByte() {
             ByteBuffer frame = GetCurrentFrame();
             if (frame == null) return -1;
-            return frame.GetByte();
+            int readByte = frame.GetByte();
+            currentPosition++;
+            return readByte;
         }
 
         public override long Seek(long offset, SeekOrigin loc) {
-            switch (loc) {
-                case SeekOrigin.Begin:
-                Position = offset;
-                break;
-                case SeekOrigin.Current:
-                Position += offset;
-                break;
-                case SeekOrigin.End:
-                Position -= offset;
-                break;
-            }
-            return Position;
+            throw new NotImplementedException("Not implemented!");
         }
 
         public override void SetLength(long value) {
@@ -198,7 +201,7 @@ namespace seacat_winrt_client.Http {
 
         public override bool CanRead => true;
 
-        public override bool CanSeek => true;
+        public override bool CanSeek => false;
 
         public override bool CanWrite => false;
 
@@ -209,13 +212,13 @@ namespace seacat_winrt_client.Http {
             }
         }
 
-        public override long Length => GetCurrentFrame().Length;
+        public override long Length {
+            get { throw new NotImplementedException("Not implemented!"); }
+        }
 
         public override long Position {
-            get { return GetCurrentFrame().Position; }
-            set {
-                GetCurrentFrame().Position = (int)value;
-            }
+            get { return currentPosition; }
+            set { throw new NotImplementedException("Not implemented!"); }
         }
 
     }

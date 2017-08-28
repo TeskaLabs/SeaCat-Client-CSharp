@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -49,8 +50,7 @@ namespace seacat_demoapp
                 SeaCatClient.Initialize();
                 SeaCatClient.GetReactor().isReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");
-
-                var client = SeaCatClient.Open("http://jsonplaceholder.typicode.com/posts/1");
+                
                 new Task(DownloadUrl).Start();
 
             }).Start();
@@ -58,8 +58,13 @@ namespace seacat_demoapp
 
         protected async void DownloadUrl()
         {
-            var client = SeaCatClient.Open("http://jsonplaceholder.typicode.com/posts/1");
-            var msg = await client.GetStringAsync("http://jsonplaceholder.typicode.com/posts/1");
+            var realTest = new HttpClient();
+            var realMsg = await realTest.GetStringAsync("http://jsonplaceholder.typicode.com/posts/1");
+
+            var client = SeaCatClient.Open("http://jsonplaceholder.seacat/posts/1");
+            var msg = await client.GetStringAsync("http://jsonplaceholder.seacat/posts/1");
+
+
             bool dummy = false;
         }
 

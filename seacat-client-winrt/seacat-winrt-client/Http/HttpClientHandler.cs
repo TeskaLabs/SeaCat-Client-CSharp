@@ -18,8 +18,14 @@ using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace seacat_winrt_client.Http {
 
-    public class SeacatHttpClientHandler : System.Net.Http.HttpClientHandler, IFrameProvider, IStream {
-
+    public class SeacatHttpClientHandler : System.Net.Http.HttpClientHandler, IFrameProvider, IStream
+    {
+        // for debug purposes
+        private static int idCounter;
+        private object idLock = new object();
+        public int HandlerId { get; set; }
+        
+                
         private Reactor reactor;
         private Uri uri;
         private bool launched = false;
@@ -29,10 +35,10 @@ namespace seacat_winrt_client.Http {
         private Headers.Builder requestHeaders = new Headers.Builder();
         private int streamId = -1;
         private int priority;
+        private HttpResponseMessage response;
 
         private EventWaitHandle responseReady = new EventWaitHandle(false, EventResetMode.ManualReset);
-
-        // todo set this value
+        
         private System.Net.HttpStatusCode responseCode;
         private string responseMessage;
         private HttpRequestMessage request;
@@ -40,6 +46,15 @@ namespace seacat_winrt_client.Http {
         public SeacatHttpClientHandler(Reactor reactor, int priority) {
             this.reactor = reactor;
             this.priority = priority;
+
+            // increment id
+            lock (idLock)
+            {
+                this.HandlerId = idCounter;
+                Interlocked.Increment(ref idCounter);
+            }
+
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"HTTP handler; id: {HandlerId}");
         }
 
         public System.Net.Http.HttpClient HttpClient { get; set; }
@@ -48,10 +63,11 @@ namespace seacat_winrt_client.Http {
             CancellationToken cancellationToken) {
             this.uri = request.RequestUri;
             this.request = request;
-            this.inboundStream = new InboundStream(reactor, HttpClient.Timeout.Milliseconds);
+            this.inboundStream = new InboundStream(reactor, HandlerId, HttpClient.Timeout.Milliseconds);
+            
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} URI: {this.uri.AbsolutePath}");
 
             var tsk = new Task<HttpResponseMessage>(() => {
-                var msg = new HttpResponseMessage();
                 // wait for response stream
                 var inputStream = GetInputStream();
 
@@ -59,10 +75,12 @@ namespace seacat_winrt_client.Http {
                 response.Content = new StreamContent(inputStream);
 
                 foreach (var name in responseHeaders.Names()) {
-                    response.Content.Headers.Add(name, responseHeaders.Get(name));
+                    // Add() may throw an exception, because some headers aren't supported
+                    response.Headers.TryAddWithoutValidation(name, responseHeaders.Get(name));
                 }
+                
 
-                return msg;
+                return response;
             });
 
             tsk.Start();
@@ -83,6 +101,7 @@ namespace seacat_winrt_client.Http {
                 }
 
                 launched = true;
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Launched");
                 reactor.RegisterFrameProvider(this, true);
             }
         }
@@ -96,7 +115,7 @@ namespace seacat_winrt_client.Http {
         /// This is the place where request is isually executed
         /// </summary>
         /// <returns></returns>
-        public Stream GetInputStream() {
+        public InboundStream GetInputStream() {
             Launch();
             WaitForResponse();
             return inboundStream;
@@ -126,6 +145,7 @@ namespace seacat_winrt_client.Http {
 
             try {
                 if (!responseReady.WaitOne(TimeSpan.FromMilliseconds(cutOfTimeMillis))) {
+                    Logger.Error(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Reponse didn't arrive!");
                     throw new TimeoutException("Connection timeout");
                 }
             } finally {
@@ -181,11 +201,14 @@ namespace seacat_winrt_client.Http {
                 SPDY.BuildALX1SynStream(frame, streamId, uri, request.Method.Method, GetRequestHeaders(), fin_flag,
                     this.priority);
 
+                // TODO_RES : is it working in Java?
                 // If there is outbound stream, launch that
                 if (outboundStream != null) {
                     Debug.Assert((frame.GetByte(4) & SPDY.FLAG_FIN) == 0);
                     outboundStream.Launch(streamId);
+                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Sending SYN");
                 } else {
+                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Sending FIN");
                     Debug.Assert((frame.GetByte(4) & SPDY.FLAG_FIN) == SPDY.FLAG_FIN);
                 }
 
@@ -200,27 +223,28 @@ namespace seacat_winrt_client.Http {
         }
 
         public void Reset() {
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Reset stream");
             if (outboundStream != null) { outboundStream.Reset(); }
             inboundStream.Reset();
         }
-
-        private HttpResponseMessage response;
-
+        
         public bool ReceivedALX1_SYN_REPLY(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {
             lock (this) {
                 //TODO: Check stage - should disregards frames that come prior proper state
+
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} SYN REPLY of length {frameLength} arrived");
 
                 // Status
                 int respCodeInt = frame.GetShort();
                 responseCode = (HttpStatusCode)respCodeInt;
                 responseMessage = HttpStatus.GetMessage(respCodeInt);
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Response:: {respCodeInt}:{responseMessage}");
 
                 // Reserved (unused) 16 bits
                 frame.GetShort();
 
                 // Parse response headers
                 Headers.Builder headerBuilder = new Headers.Builder();
-                headerBuilder.Add(null, "HTTP/1.1 " + responseCode + " " + responseMessage); // To mimic HttpURLConnection behaviour
 
                 for (; frame.Position < frame.Limit;) {
                     String k = SPDY.ParseVLEString(frame);
@@ -237,6 +261,7 @@ namespace seacat_winrt_client.Http {
 
         public bool ReceivedSPD3_RST_STREAM(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {
             lock (this) {
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} RST STREAM ARRIVED");
                 Reset();
                 return true;
             }
@@ -244,9 +269,16 @@ namespace seacat_winrt_client.Http {
 
         public bool ReceivedDataFrame(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {
             lock (this) {
+
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} DATA FRAME of length {frameLength} arrived");
+
                 //TODO: Check stage - should disregards frames that come prior proper state
                 bool ret = inboundStream.InboundData(frame);
-                if ((frameFlags & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) inboundStream.Dispose();
+                if ((frameFlags & SPDY.FLAG_FIN) == SPDY.FLAG_FIN)
+                {
+                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} FIN detected -> closing stream");
+                    inboundStream.Dispose();
+                }
                 return ret;
             }
         }

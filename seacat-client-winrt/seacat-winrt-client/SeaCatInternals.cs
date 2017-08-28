@@ -14,6 +14,7 @@ namespace seacat_winrt_client {
 
         public static String SeaCatHostSuffix = ".seacat";
         public static String SeaCatPreferences = "seacat_preferences";
+        public static String HTTPTAG = "::HTTP";
 
         private static Task CSRWorker = null;
         public static String applicationIdSuffix = null;
