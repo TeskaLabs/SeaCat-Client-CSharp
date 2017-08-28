@@ -42,7 +42,7 @@ namespace seacat_demoapp {
 
         public MainPage() {
             this.InitializeComponent();
-
+            
             TaskHelper.CreateTask("MainPage", () => {
                 //DeleteSeacatDirAsync().Wait();
                 SeaCatClient.Initialize();
@@ -69,6 +69,8 @@ namespace seacat_demoapp {
         protected async void GetAsync(HttpClient client, int id) {
             var getResp = await client.GetAsync("http://jsonplaceholder.seacat/posts/" + id.ToString() + "/comments");
             var strResp = await getResp.Content.ReadAsStringAsync();
+
+            //var real = await new HttpClient().GetAsync("http://jsonplaceholder.typicode.com/posts/" + id.ToString() + "/comments");
 
             IEnumerable<string> handlerIds = new List<string>();
             getResp.Content.Headers.TryGetValues("HANDLER-ID", out handlerIds);

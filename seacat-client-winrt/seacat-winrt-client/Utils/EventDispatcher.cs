@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.UI.Core;
 
 namespace seacat_winrt_client.Utils {
 
@@ -14,7 +15,7 @@ namespace seacat_winrt_client.Utils {
         private static EventDispatcher _data;
         public static EventDispatcher Dispatcher => _data ?? (_data = new EventDispatcher());
 
-        private readonly List<object> _subscribers = new List<object>();
+        private readonly Dictionary<BroadcastReceiver, CoreDispatcher> _subscribers = new Dictionary<BroadcastReceiver, CoreDispatcher>();
 
         private EventDispatcher() {
 
@@ -24,9 +25,9 @@ namespace seacat_winrt_client.Utils {
         /// Subscribes for sending messages
         /// </summary>
         /// <param name="subscriber"></param>
-        public void Subscribe(object subscriber) {
-            if (!_subscribers.Contains(subscriber)) {
-                _subscribers.Add(subscriber);
+        public void Subscribe(CoreDispatcher dispatcher, BroadcastReceiver subscriber) {
+            if (!_subscribers.ContainsKey(subscriber)) {
+                _subscribers.Add(subscriber, dispatcher);
             }
         }
 
@@ -34,8 +35,8 @@ namespace seacat_winrt_client.Utils {
         /// Unsubscribes from sending messages
         /// </summary>
         /// <param name="subscriber"></param>
-        public void Unsubscribe(object subscriber) {
-            if (_subscribers.Contains(subscriber)) {
+        public void Unsubscribe(BroadcastReceiver subscriber) {
+            if (_subscribers.ContainsKey(subscriber)) {
                 _subscribers.Remove(subscriber);
             }
         }
@@ -44,9 +45,11 @@ namespace seacat_winrt_client.Utils {
         /// Sends broadcast message
         /// </summary>
         /// <param name="message"></param>
-        public void SendBroadcast(EventMessage message) {
-            foreach (var subscriber in _subscribers) {
-                (subscriber as BroadcastReceiver)?.ReceiveMessage(message);
+        public async void SendBroadcast(EventMessage message) {
+            foreach (var subscriber in _subscribers)
+            {
+                // use core dispatcher to invoke the method on UI thread
+                await subscriber.Value.RunAsync(CoreDispatcherPriority.Normal, () => subscriber.Key.ReceiveMessage(message));
             }
         }
     }

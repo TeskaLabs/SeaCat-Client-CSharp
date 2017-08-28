@@ -77,6 +77,7 @@ namespace seacat_winrt_client.Http {
 
                 this.response = new HttpResponseMessage(responseCode);
                 response.Content = new StreamContent(inputStream);
+                response.RequestMessage = request;
 
 #if DEBUG
                 // add handler if to header for debug purposes
@@ -85,7 +86,10 @@ namespace seacat_winrt_client.Http {
 
                 if (responseHeaders != null) {
                     foreach (var name in responseHeaders.Names()) {
-                        // Add() may throw an exception, because some headers aren't supported
+                        // some headers should be put into content header collection
+                        response.Content.Headers.TryAddWithoutValidation(name,
+                          responseHeaders.Get(name));
+
                         response.Headers.TryAddWithoutValidation(name,
                             responseHeaders.Get(name));
                     }
@@ -100,7 +104,7 @@ namespace seacat_winrt_client.Http {
 
         public void Reset() {
             Dispose();
-            // TODO_RES -> should be ready?
+            // TODO_RES -> should be ready? 
             responseReady.Set();
         }
 
