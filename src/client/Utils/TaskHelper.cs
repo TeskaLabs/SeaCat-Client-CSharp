@@ -7,8 +7,14 @@ using System.Threading.Tasks;
 
 namespace SeaCatCSharpClient.Utils {
 
+    /// <summary>
+    /// Executor for all tasks; replaces threading executors (since there is no thread access for WinRT or WinPhone
+    /// </summary>
     public static class TaskHelper {
 
+        /// <summary>
+        /// Metadata for tasks
+        /// </summary>
         class TaskMetadata {
             public Task task;
             public CancellationTokenSource tokenSource;
@@ -20,18 +26,24 @@ namespace SeaCatCSharpClient.Utils {
                 this.name = name;
             }
         }
-
+        
         private static Dictionary<int?, TaskMetadata> _alltasks = new Dictionary<int?, TaskMetadata>();
 
 
+        /// <summary>
+        /// Gets current task or null if it isn't stored in the dictionary
+        /// </summary>
         public static Task CurrentTask => GetMetadata(Task.CurrentId)?.task;
 
+        /// <summary>
+        /// Checks, if the current task has been interrupted; if so, a TaskCanceledException will be thrown
+        /// </summary>
         public static void CheckInterrupt() {
             if (GetMetadata(Task.CurrentId)?.tokenSource.IsCancellationRequested == true) {
                 throw new TaskCanceledException("Task has been cancelled");
             }
         }
-
+        
         public static void AbortCurrentTask() {
             GetMetadata(Task.CurrentId)?.tokenSource.Cancel();
         }
@@ -40,6 +52,12 @@ namespace SeaCatCSharpClient.Utils {
             GetMetadata(Task.CurrentId)?.tokenSource.Cancel();
         }
 
+        /// <summary>
+        /// Creates a new task with given name
+        /// </summary>
+        /// <param name="name">name of the task</param>
+        /// <param name="action">action to execute</param>
+        /// <returns></returns>
         public static Task CreateTask(string name, Action action) {
             lock (_alltasks) {
                 var tokenSource = new CancellationTokenSource();
@@ -55,6 +73,12 @@ namespace SeaCatCSharpClient.Utils {
             }
         }
 
+        /// <summary>
+        /// Creates a new task of given type with given name
+        /// </summary>
+        /// <param name="name">name of the task</param>
+        /// <param name="action">action to execute</param>
+        /// <returns></returns>
         public static Task<T> CreateTask<T>(string name, Func<T> action) {
             lock (_alltasks) {
                 var tokenSource = new CancellationTokenSource();

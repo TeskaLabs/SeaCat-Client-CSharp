@@ -4,10 +4,12 @@ using SeaCatCSharpClient.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Windows.UI.Xaml.Documents;
 
 namespace SeaCatCSharpClient.Ping {
 
+    /// <summary>
+    /// Factory that orchestrates ping flow
+    /// </summary>
     public class PingFactory : IFrameConsumer, IFrameProvider {
 
         private static string TAG = "PingFactory";
@@ -23,12 +25,12 @@ namespace SeaCatCSharpClient.Ping {
             }
         }
 
-
         public void Reset() {
             lock (this) {
                 Logger.Debug(TAG, "Reset");
                 idSequence.Set(1);
 
+                // remove all waiting pings
                 foreach (var key in waitingPingDict.Keys) {
                     Ping ping = waitingPingDict[key];
                     waitingPingDict.Remove(key);
@@ -37,7 +39,10 @@ namespace SeaCatCSharpClient.Ping {
             }
         }
 
-
+        /// <summary>
+        /// Remove all expired pings
+        /// </summary>
+        /// <param name="now">current time</param>
         public void HeartBeat(double now) {
             lock (this) {
                 foreach (var key in waitingPingDict.Keys.ToList()) {
@@ -64,22 +69,23 @@ namespace SeaCatCSharpClient.Ping {
                 Logger.Debug(TAG, "BuildFrame");
                 ByteBuffer frame = null;
 
-                //Integer pingId
+
                 Ping ping = outboundPingQueue.Dequeue();
+
                 if (ping == null) {
                     keep = false;
                     return null;
                 }
 
-                // This is pong object (response to gateway)
                 if (ping is Pong) {
-
-                } else // This is ping object (request to gateway)
-                  {
+                    //pong object (response to gateway)
+                } else {
+                    //ping object (request to gateway)
                     ping.PingId = idSequence.GetAndAdd(2);
                     waitingPingDict.Add(ping.PingId, ping);
                 }
 
+                // borrow a new frame and write data to it
                 frame = reactor.FramePool.Borrow("PingFactory.ping");
                 SPDY.BuildSPD3Ping(frame, ping.PingId);
                 keep = !outboundPingQueue.IsEmpty();
@@ -87,13 +93,13 @@ namespace SeaCatCSharpClient.Ping {
             }
         }
 
-
         public bool ReceivedControlFrame(Reactor reactor, ByteBuffer frame, int frameVersionType, int frameLength, byte frameFlags) {
             lock (this) {
                 Logger.Debug(TAG, "ReceivedControlFrame");
 
                 //TODO: pingId is unsigned (based on SPDY specifications)
                 int pingId = frame.GetInt();
+
                 if ((pingId % 2) == 1) {
                     // Pong frame received ...
                     Ping ping = waitingPingDict[pingId];

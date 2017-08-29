@@ -17,34 +17,39 @@ using HttpResponseMessage = System.Net.Http.HttpResponseMessage;
 using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace SeaCatCSharpClient.Http {
+
     /// <summary>
-    /// Http sender for HTTP client handlers
+    /// Http sender that passes HTTP requests to the Seacat flow. Contains I/O streams that process incoming frames.
     /// </summary>
     public class HttpSender : IFrameProvider, IStream {
-        // for debug purposes
+        // ids, for debug purposes
         private static int idCounter;
-        private object idLock = new object();
-        public int HandlerId { get; set; }
+        private static object idLock = new object();
+
+        public int SenderId { get; set; }
 
 
         private Reactor reactor;
         private Uri uri;
+        private System.Net.Http.HttpClient client;
         private bool launched = false;
-        protected InboundStream inboundStream;
-        protected OutboundStream outboundStream = null;
-        private Headers responseHeaders = null;
-        private Headers.Builder requestHeaders = new Headers.Builder();
+        private InboundStream inboundStream;
+        private OutboundStream outboundStream = null;
+        
         private int streamId = -1;
         private int priority;
-        private HttpResponseMessage response;
 
         private EventWaitHandle responseReady = new EventWaitHandle(false, EventResetMode.ManualReset);
-
-        private System.Net.HttpStatusCode responseCode;
-        private string responseMessage;
+        
+        // request
         private HttpRequestMessage request;
-        private System.Net.Http.HttpClient client;
-        private CancellationToken cancellationToken;
+        private Headers.Builder requestHeaders = new Headers.Builder();
+
+        // response
+        private HttpResponseMessage response;
+        private Headers responseHeaders = null;
+        private HttpStatusCode responseCode;
+        private string responseMessage;
 
         public HttpSender(System.Net.Http.HttpClient client, Reactor reactor, int priority) {
             this.client = client;
@@ -53,57 +58,66 @@ namespace SeaCatCSharpClient.Http {
 
             // increment id
             lock (idLock) {
-                this.HandlerId = idCounter;
+                this.SenderId = idCounter;
                 Interlocked.Increment(ref idCounter);
             }
 
-            Logger.Debug(SeaCatInternals.HTTPTAG, $"HTTP handler; id: {HandlerId}");
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"HTTP handler; id: {SenderId}");
         }
 
-
+        /// <summary>
+        /// Passes asynchronously HTTP request into seacat flow and waits for a response
+        /// </summary>
+        /// <param name="request">request to process</param>
+        /// <returns></returns>
         public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken) {
             this.uri = request.RequestUri;
             this.request = request;
-            this.cancellationToken = cancellationToken;
 
-            this.inboundStream = new InboundStream(reactor, HandlerId, client.Timeout.Milliseconds);
+            // init inbound stream
+            this.inboundStream = new InboundStream(reactor, SenderId, client.Timeout.Milliseconds);
 
-            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} URI: {this.uri}");
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} URI: {this.uri}");
 
+            // run in separate thread
             var tsk = TaskHelper.CreateTask<HttpResponseMessage>("HTTP Task", () => {
                 // wait for response stream
                 var inputStream = GetInputStream();
 
+                // create response
                 this.response = new HttpResponseMessage(responseCode);
                 response.Content = new StreamContent(inputStream);
                 response.RequestMessage = request;
 
 #if DEBUG
-                // add handler if to header for debug purposes
-                response.Content.Headers.Add("HANDLER-ID", HandlerId.ToString());
+                // for debug purposes, add id of this sender
+                response.Content.Headers.Add("HANDLER-ID", SenderId.ToString());
 #endif
 
+                // pass all HTTP headers into output entity
                 if (responseHeaders != null) {
                     foreach (var name in responseHeaders.Names()) {
                         // some headers should be put into content header collection
                         response.Content.Headers.TryAddWithoutValidation(name,
-                          responseHeaders.Get(name));
+                          responseHeaders[name]);
 
                         response.Headers.TryAddWithoutValidation(name,
-                            responseHeaders.Get(name));
+                            responseHeaders[name]);
                     }
                 }
 
                 return response;
             });
 
+            // run the asynchronous task
             tsk.Start();
             return tsk;
         }
-
+        
         public void Reset() {
-            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Reset stream");
+            // received reset stream frame -> pass 500 as a response code
+            Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} Reset stream");
             Dispose();
 
             responseCode = HttpStatusCode.InternalServerError;
@@ -116,27 +130,6 @@ namespace SeaCatCSharpClient.Http {
             inboundStream.Reset();
         }
 
-        private void Launch() {
-            if (!launched) {
-                if (outboundStream != null) {
-                    int contentLength = outboundStream.GetContentLength();
-                    if ((contentLength > 0) && (GetRequestProperty("Content-length") == null)) {
-                        // If there is an outboundStream with data, we can determine Content-Length
-                        outboundStream.Dispose();
-
-                        SetRequestProperty("Content-length", "" + contentLength);
-                    }
-                }
-
-                launched = true;
-                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Launched");
-                reactor.RegisterFrameProvider(this, true);
-            }
-        }
-
-        public bool IsLaunched() {
-            return launched;
-        }
 
         /// <summary>
         /// Returns a response body
@@ -149,53 +142,6 @@ namespace SeaCatCSharpClient.Http {
             return inboundStream;
         }
 
-        /// <summary>
-        /// Returns a response status code
-        /// This method triggers an actual request (if needed) and waits for response code from server
-        /// </summary>
-        /// <returns></returns>
-        public HttpStatusCode GetResponseCode() {
-            Launch();
-            WaitForResponse();
-            return responseCode;
-        }
-
-        /// <summary>
-        /// Blocks and waits for a response from the gateway
-        /// Timeouts using IOException after connection timeout
-        /// </summary>
-        protected void WaitForResponse() {
-            long timeoutMillis = client.Timeout.Milliseconds;
-            if (timeoutMillis == 0) timeoutMillis = 1000 * 60 * 3; // 3 minutes timeout
-            long cutOfTimeMillis = DateTimeOffset.Now.Millisecond + timeoutMillis;
-
-            responseReady.Reset();
-
-            try {
-                if (!responseReady.WaitOne(TimeSpan.FromMilliseconds(cutOfTimeMillis))) {
-                    Logger.Error(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Reponse didn't arrive!");
-                    throw new TimeoutException("Connection timeout");
-                }
-            } finally {
-                responseReady.Set();
-            }
-        }
-
-        public Stream GetOutputStream() {
-            lock (this) {
-                if (request.Method.Method == "GET") {
-                    request.Method = new System.Net.Http.HttpMethod("POST"); // Backward compatibility
-                }
-
-                if (outboundStream == null) {
-                    if (launched) throw new IOException("Cannot write output after reading input.");
-                    outboundStream = new OutboundStream(this.reactor, this.priority);
-                }
-                return outboundStream;
-            }
-        }
-
-
         public string GetRequestProperty(string field) {
             lock (this) {
                 if (field == null) return null;
@@ -203,30 +149,33 @@ namespace SeaCatCSharpClient.Http {
             }
         }
 
-
+        /// <summary>
+        /// Builds SYN STREAM frame and registers a new stream
+        /// </summary>
+        /// <returns></returns>
         public ByteBuffer BuildFrame(Reactor reactor, out bool keep) {
             lock (this) {
                 Debug.Assert(this.reactor == reactor);
 
-                bool fin_flag = (outboundStream == null);
+                // if there is no outbound stream, add FIN FLAG to the current frame
+                bool finFlag = (outboundStream == null);
 
+                // get a free frame
                 ByteBuffer frame = reactor.FramePool.Borrow("HttpClientHandler.buildSYN_STREAM");
 
+                // register a new stream and build the frame
                 streamId = reactor.StreamFactory.RegisterStream(this);
-                inboundStream.SetStreamId(streamId);
-
-                // Build SYN_STREAM frame
-                SPDY.BuildALX1SynStream(frame, streamId, uri, request.Method.Method, GetRequestHeaders(), fin_flag,
-                    this.priority);
+                inboundStream.StreamId = streamId;
+                SPDY.BuildALX1SynStream(frame, streamId, uri, request.Method.Method, GetRequestHeaders(), finFlag, priority);
 
 
-                // If there is outbound stream, launch that
+                // If there is an outbound stream, launch that
                 if (outboundStream != null) {
                     Debug.Assert((frame.GetByte(4) & SPDY.FLAG_FIN) == 0);
                     outboundStream.Launch(streamId);
-                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Sending SYN");
+                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} Sending SYN");
                 } else {
-                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Sending FIN");
+                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} Sending FIN");
                     Debug.Assert((frame.GetByte(4) & SPDY.FLAG_FIN) == SPDY.FLAG_FIN);
                 }
 
@@ -235,22 +184,21 @@ namespace SeaCatCSharpClient.Http {
             }
         }
 
-
         public int FrameProviderPriority => priority;
-
 
         public bool ReceivedALX1_SYN_REPLY(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {
 
+            // received HTTP response
+
             lock (this) {
                 //TODO: Check stage - should disregards frames that come prior proper state
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} SYN REPLY of length {frameLength} arrived");
 
-                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} SYN REPLY of length {frameLength} arrived");
-
-                // Status
+                // get response code and message
                 int respCodeInt = frame.GetShort();
                 responseCode = (HttpStatusCode)respCodeInt;
                 responseMessage = HttpStatus.GetMessage(respCodeInt);
-                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Response:: {respCodeInt}:{responseMessage}");
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} Response:: {respCodeInt}:{responseMessage}");
 
                 // Reserved (unused) 16 bits
                 frame.GetShort();
@@ -258,12 +206,14 @@ namespace SeaCatCSharpClient.Http {
                 // Parse response headers
                 Headers.Builder headerBuilder = new Headers.Builder();
 
-                for (; frame.Position < frame.Limit;) {
-                    String k = SPDY.ParseVLEString(frame);
-                    String v = SPDY.ParseVLEString(frame);
-                    headerBuilder.Add(k, v);
+                while(frame.Position < frame.Limit) {
+                    string key = SPDY.ParseVLEString(frame);
+                    string val = SPDY.ParseVLEString(frame);
+                    headerBuilder.Add(key, val);
                 }
+
                 responseHeaders = headerBuilder.Build();
+                // response is now ready
                 responseReady.Set();
 
                 if ((frameFlags & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) inboundStream.Dispose();
@@ -273,7 +223,8 @@ namespace SeaCatCSharpClient.Http {
 
         public bool ReceivedSPD3_RST_STREAM(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {
             lock (this) {
-                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} RST STREAM ARRIVED");
+                // reset stream received
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} RST STREAM ARRIVED");
                 Reset();
                 return true;
             }
@@ -281,19 +232,16 @@ namespace SeaCatCSharpClient.Http {
 
         public bool ReceivedDataFrame(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {
             lock (this) {
-
-                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} DATA FRAME of length {frameLength} arrived");
-
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} DATA FRAME of length {frameLength} arrived");
                 //TODO: Check stage - should disregards frames that come prior proper state
                 bool ret = inboundStream.InboundData(frame);
                 if ((frameFlags & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) {
-                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} FIN detected -> closing stream");
+                    Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} FIN detected -> closing stream");
                     inboundStream.Dispose();
                 }
                 return ret;
             }
         }
-
 
         public Headers GetRequestHeaders() {
             lock (this) {
@@ -301,47 +249,46 @@ namespace SeaCatCSharpClient.Http {
             }
         }
 
-        public void SetRequestProperty(string field, string newValue) {
-            lock (this) {
-                //TODO: Consider this: if (stage >= HEADER_SENT) throw new IllegalStateException("Cannot set request property after connection is made");
-                if (field == null) {
-                    throw new NullReferenceException("field == null");
-                }
-
-                if (newValue == null) {
-                    // Silently ignore null header values for backwards compatibility with older
-                    // android versions as well as with other URLConnection implementations.
-                    //
-                    // Some implementations send a malformed HTTP header when faced with
-                    // such requests, we respect the spec and ignore the header.
-                    return;
-                }
-
-                requestHeaders.Set(field, newValue);
-            }
-        }
-
-        public void AddRequestProperty(string field, string newValue) {
-            lock (this) {
-                //TODO: Consider this: if (stage >= HEADER_SENT) throw new IllegalStateException("Cannot set request property after connection is made");
-
-                if (field == null) {
-                    throw new NullReferenceException("field == null");
-                }
-
-                if (newValue == null) {
-                    // Silently ignore null header values for backwards compatibility with older
-                    // android versions as well as with other URLConnection implementations.
-                    //
-                    // Some implementations send a malformed HTTP header when faced with
-                    // such requests, we respect the spec and ignore the header.
-                    return;
-                }
-
-                requestHeaders.Add(field, newValue);
-            }
-        }
-
         public int GetStreamId() { return streamId; }
+
+        private void Launch() {
+            if (!launched) {
+                if (outboundStream != null) {
+                    int contentLength = outboundStream.ContentLength;
+                    if ((contentLength > 0) && (GetRequestProperty("Content-length") == null)) {
+                        // If there is an outboundStream with data, we can determine Content-Length
+                        outboundStream.Dispose();
+                        requestHeaders.Set("Content-length", contentLength.ToString());
+                    }
+                }
+
+                launched = true;
+                Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} Launched");
+                reactor.RegisterFrameProvider(this, true);
+            }
+        }
+
+
+        /// <summary>
+        /// Blocks and waits for a response from the gateway
+        /// Timeouts using IOException after connection timeout
+        /// </summary>
+        protected void WaitForResponse() {
+
+            long timeoutMillis = client.Timeout.Milliseconds;
+            if (timeoutMillis == 0) timeoutMillis = 1000 * 60 * 3; // 3 minutes timeout
+            long cutOfTimeMillis = DateTimeOffset.Now.Millisecond + timeoutMillis;
+
+            responseReady.Reset();
+
+            try {
+                if (!responseReady.WaitOne(TimeSpan.FromMilliseconds(cutOfTimeMillis))) {
+                    Logger.Error(SeaCatInternals.HTTPTAG, $"H:{SenderId} Reponse didn't arrive!");
+                    throw new TimeoutException("Connection timeout");
+                }
+            } finally {
+                responseReady.Set();
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@ using Windows.ApplicationModel;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -27,59 +28,61 @@ namespace SeaCatCSharpWP81Demo
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class MainPage : Page {
-        public async Task<bool> DeleteSeacatDirAsync() {
-            try {
-                var allf = await ApplicationData.Current.LocalFolder.GetFoldersAsync();
-                var folder = await ApplicationData.Current.LocalFolder.GetFolderAsync(".seacat");
-                var files = await folder.GetFilesAsync();
-
-                foreach (var file in files) {
-                    await file.DeleteAsync();
-                }
-            } catch (Exception) {
-                return false;
-            }
-            return true;
-        }
-
         public MainPage() {
             this.InitializeComponent();
 
-            TaskHelper.CreateTask("MainPage", () => {
+            // redirect logger into textview
+            Logger.SetDelegate((string tag, string msg) => {
+                Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
+                    MainText.Text += $"{tag}:: {msg}\n";
+                    MainScroll.ScrollToVerticalOffset(MainScroll.ScrollableHeight);
+                });
+            });
 
-                //DeleteSeacatDirAsync().Wait();
+            TaskHelper.CreateTask("MainPage", () => {
+                // initialize seacat
                 SeaCatClient.Initialize("mobi.seacat.test", null, "wp8", ApplicationData.Current.LocalFolder.Path);
                 SeaCatClient.SetLogMask(LogFlag.DEBUG_GENERIC);
-                SeaCatClient.GetReactor().IsReadyHandle.WaitOne();
+                SeaCatClient.Reactor.IsReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");
 
+                // start download task
                 TaskHelper.CreateTask("Download", DownloadUrl).Start();
 
             }).Start();
         }
 
-        private void DownloadUrl() {
-
+        private async void DownloadUrl() {
+            // open client
             var client = SeaCatClient.Open();
+            int idCounter = 1;
 
-            for (int i = 0; i < 2; i++) {
-                GetAsync(client, i * 2);
-                PostAsync(client, i * 2 + 1);
+            while (true) {
+                // get request
+                var getTask = new Task(() => GetAsync(client, idCounter++));
+                getTask.Start();
+                await getTask;
+                await Task.Delay(2000);
+
+                // post request
+                var postTask = new Task(() => PostAsync(client, idCounter++));
+                postTask.Start();
+                await getTask;
+                await Task.Delay(2000);
             }
 
-            //client.Dispose();
+            // dispose client at last
+            client.Dispose();
         }
 
         private async void GetAsync(HttpClient client, int id) {
             var getResp = await client.GetAsync("http://jsonplaceholder.seacat/posts/" + id.ToString() + "/comments");
             var strResp = await getResp.Content.ReadAsStringAsync();
 
-            //var real = await new HttpClient().GetAsync("http://jsonplaceholder.typicode.com/posts/" + id.ToString() + "/comments");
-
+            // print id of handler and response body
             IEnumerable<string> handlerIds = new List<string>();
             getResp.Content.Headers.TryGetValues("HANDLER-ID", out handlerIds);
             var handlerId = handlerIds != null ? handlerIds.FirstOrDefault() : "--";
-
             Logger.Debug($"===== {handlerId} RESPONSE BODY::", strResp);
 
         }
@@ -89,11 +92,13 @@ namespace SeaCatCSharpWP81Demo
             var postString = "{\"userId\": 1, \"id\": " + id +
                              ", \"title\": \"HELLO WORLD\", \"body\": \"Hello Post message\"}";
 
+            Logger.Debug(":HTTP:", $"Post: {postString}");
             var msg = await client.PostAsync("http://jsonplaceholder.seacat/posts", new StringContent(postString));
 
             IEnumerable<string> handlerIds = new List<string>();
             msg.Content.Headers.TryGetValues("HANDLER-ID", out handlerIds);
 
+            // print id of handler and response body
             var stringMsg = await msg.Content.ReadAsStringAsync();
             var handlerId = handlerIds != null ? handlerIds.FirstOrDefault() : "--";
             Logger.Debug($"===== {handlerId} RESPONSE BODY::", stringMsg);

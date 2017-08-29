@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace SeaCatCSharpClient.Utils {
 
+    /// <summary>
+    /// Simple priority blocking queue
+    /// </summary>
+    /// <typeparam name="TValue"></typeparam>
     public class PriorityBlockingQueue<TValue> : BlockingQueue<TValue> {
 
         private readonly IComparer<TValue> priorityComparer;
@@ -17,7 +21,6 @@ namespace SeaCatCSharpClient.Utils {
 
             priorityComparer = comparer;
         }
-
 
 
         /// <summary>

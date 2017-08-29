@@ -130,7 +130,7 @@ namespace SeaCatCSharpClient.Core {
             AppendVLEString(frame, method);
             AppendVLEString(frame, path);
 
-            for (int i = 0; i < headers.Size(); i++) {
+            for (int i = 0; i < headers.Size; i++) {
                 string header = headers.Name(i);
                 if (header == null) continue;
                 if (header.ToLower() == "host") continue;

@@ -8,7 +8,7 @@ using Windows.UI.Core;
 namespace SeaCatCSharpClient.Utils {
 
     /// <summary>
-    /// Event dispatcher that can be used to receive broadcasts from seacat client
+    /// Event dispatcher for receiving broadcasts from seacat client
     /// </summary>
     public class EventDispatcher {
 
@@ -54,6 +54,16 @@ namespace SeaCatCSharpClient.Utils {
         }
     }
 
+    /// <summary>
+    /// Interface for receivers
+    /// </summary>
+    public interface BroadcastReceiver {
+        void ReceiveMessage(EventMessage message);
+    }
+
+    /// <summary>
+    /// Event message that is sent to subscribers, similar to intents on Android platform
+    /// </summary>
     public class EventMessage {
         private Dictionary<string, object> extras = new Dictionary<string, object>();
 
@@ -74,9 +84,5 @@ namespace SeaCatCSharpClient.Utils {
         public void PutExtra(string key, float value) => extras.Add(key, value);
 
         public float GetFloat(string key) => extras[key] as float? ?? 0.0f;
-    }
-
-    public interface BroadcastReceiver {
-        void ReceiveMessage(EventMessage message);
     }
 }

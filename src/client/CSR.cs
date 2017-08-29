@@ -6,12 +6,76 @@ using System.IO;
 using System.Threading.Tasks;
 
 namespace SeaCatCSharpClient {
+
+    /// <summary>
+    /// Helper for CSR structure
+    /// </summary>
     public class CSR {
 
         private Dictionary<string, string> paramMap = new Dictionary<string, string>();
 
         public CSR() {
 
+        }
+
+        public string Country
+        {
+            get { return paramMap["C"]; }
+            set { paramMap.Add("C", value);}
+        }
+
+        public string State
+        {
+            get { return paramMap["ST"]; }
+            set { paramMap.Add("ST", value);}
+        }
+
+        public string Locality
+        {
+            get { return paramMap["L"]; }
+            set { paramMap.Add("L", value);}
+        }
+
+        public string Organization
+        {
+            get { return paramMap["O"]; }
+            set { paramMap.Add("O", value);}
+        }
+
+        public string OrganizationUnit
+        {
+            get { return paramMap["OU"]; }
+            set { paramMap.Add("OU", value);}
+        }
+
+        public string CommonName
+        {
+            get { return paramMap["CN"]; }
+            set { paramMap.Add("CN", value);}
+        }
+
+        public string Surname
+        {
+            get { return paramMap["SN"]; }
+            set { paramMap.Add("SN",value);}
+        }
+
+        public string GivenName
+        {
+            get { return paramMap["GN"]; }
+            set { paramMap.Add("GN",value);}
+        }
+
+        public string EmailAddress
+        {
+            get { return paramMap["emailAddress"]; }
+            set { paramMap.Add("emailAddress",value);}
+        }
+
+        public string UniqueIdentifier
+        {
+            get { return paramMap["UID"]; }
+            set { paramMap.Add("UID",value);}
         }
 
         public void Set(string name, string value) => paramMap.Add(name, value);
@@ -31,50 +95,10 @@ namespace SeaCatCSharpClient {
             return arr;
         }
 
-        public string GetCountry() => paramMap["C"];
-
-        public void SetCountry(string country) => paramMap.Add("C", country);
-
-        public string GetState() => paramMap["ST"];
-
-        public void SetState(string state) => paramMap.Add("ST", state);
-
-        public string GetLocality() => paramMap["L"];
-
-        public void SetLocality(string locality) => paramMap.Add("L", locality);
-
-        public string GetOrganization() => paramMap["O"];
-
-        public void SetOrganization(string organization) => paramMap.Add("O", organization);
-
-        public string GetOrganizationUnit() => paramMap["OU"];
-
-        public void SetOrganizationUnit(string organization_unit) => paramMap.Add("OU", organization_unit);
-
-        public string GetCommonName() => paramMap["CN"];
-
-        public void SetCommonName(string common_name) => paramMap.Add("CN", common_name);
-
-        public string GetSurname() => paramMap["SN"];
-
-        public void SetSurname(string surname) => paramMap.Add("SN", surname);
-
-        public string GetGivenName() => paramMap["GN"];
-
-        public void SetGivenName(string given_name) => paramMap.Add("GN", given_name);
-
-        public string GetEmailAddress() => paramMap["emailAddress"];
-
-        public void SetEmailAddress(string emailAddress) => paramMap.Add("emailAddress", emailAddress);
-
-        public string GetUniqueIdentifier() => paramMap["UID"];
-
-        public void SetUniqueIdentifier(string uniqueIdentifier) => paramMap.Add("UID", uniqueIdentifier);
-
         public void SetData(string data) => this.Set("description", data);
 
         public void Submit() {
-            int rc = SeaCatClient.GetReactor().Bridge.csrgen_worker(this.ToStringArray());
+            int rc = SeaCatClient.Reactor.Bridge.csrgen_worker(this.ToStringArray());
             RC.CheckAndThrowIOException("seacatcc.csrgen_worker", rc);
         }
 

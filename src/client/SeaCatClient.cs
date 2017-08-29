@@ -20,6 +20,7 @@ namespace SeaCatCSharpClient {
     public class SeaCatClient {
 
         private static Reactor reactor = null;
+        private static bool initialized = false;
 
         /// <summary>
         /// The event category for all intents sent by SeaCat client
@@ -86,6 +87,7 @@ namespace SeaCatCSharpClient {
                 reactor.Init(appName, appSuffix, platform, storageDir);
                 // Process plugins
                 SeaCatPlugin.CommitCapabilities();
+                initialized = true;
             } catch (IOException e) {
                 Logger.Error("SeaCatClient", $"Exception during SeaCat reactor start {e.Message}");
             }
@@ -95,13 +97,10 @@ namespace SeaCatCSharpClient {
         /// Triggers sending of an ACTION_SEACAT_STATE_CHANGED event even if the state has not changed.
         /// </summary>
         public static void BroadcastState() {
-            Reactor reactor = GetReactor();
-            reactor?.BroadcastState();
+            Reactor?.BroadcastState();
         }
 
-        public static Reactor GetReactor() {
-            return SeaCatClient.reactor;
-        }
+        public static Reactor Reactor => SeaCatClient.reactor;
 
 
         /// <summary>
@@ -110,17 +109,26 @@ namespace SeaCatCSharpClient {
         /// This function can be used to keep the connection to SeaCat gateway open.
         /// </summary>
         public static void Ping(Ping.Ping ping) {
-            GetReactor().PingFactory.Ping(reactor, ping);
+            if (!initialized) {
+                throw new Exception("Seacat is not initialized!");
+            }
+            Reactor.PingFactory.Ping(reactor, ping);
         }
 
         public static void Ping() {
-            GetReactor().PingFactory.Ping(reactor, new Ping.Ping() { });
+            if (!initialized) {
+                throw new Exception("Seacat is not initialized!");
+            }
+            Reactor.PingFactory.Ping(reactor, new Ping.Ping() { });
         }
 
 
-        public static HttpClient Open()
-        {
-            var handler = new SeacatHttpClientHandler(GetReactor(), 3);
+        public static HttpClient Open() {
+            if (!initialized) {
+                throw new Exception("Seacat is not initialized!");
+            }
+
+            var handler = new SeacatHttpClientHandler(Reactor, 3);
             var client = new HttpClient(handler);
             handler.HttpClient = client;
             return client;
@@ -134,12 +142,16 @@ namespace SeaCatCSharpClient {
         ///
         /// <returns>The actual state string.</returns>
         /// </summary>
-        public static String GetState() => reactor.Bridge.state();
+        public static string GetState() => reactor.Bridge.state();
 
         /// <summary>
         /// Connects to SeaCat gateway
         /// </summary>
         public static void Connect() {
+            if (!initialized) {
+                throw new Exception("Seacat is not initialized!");
+            }
+
             int rc = reactor.Bridge.yield('c');
             RC.CheckAndThrowIOException("seacatcc.yield(connect)", rc);
         }
@@ -151,6 +163,10 @@ namespace SeaCatCSharpClient {
         /// There is only little need to call this function directly, SeaCat client control connection automatically.
         /// </summary>
         public static void Disconnect() {
+            if (!initialized) {
+                throw new Exception("Seacat is not initialized!");
+            }
+
             int rc = reactor.Bridge.yield('d');
             RC.CheckAndThrowIOException("seacatcc.yield(disconnect)", rc);
         }
@@ -162,11 +178,19 @@ namespace SeaCatCSharpClient {
         /// It puts client state to an initial form, effectively restarts all automated routines to obtain identity via CSR.
         /// </summary>
         public static void Reset() {
+            if (!initialized) {
+                throw new Exception("Seacat is not initialized!");
+            }
+
             int rc = reactor.Bridge.yield('r');
             RC.CheckAndThrowIOException("seacatcc.yield(reset)", rc);
         }
 
         public static void Renew() {
+            if (!initialized) {
+                throw new Exception("Seacat is not initialized!");
+            }
+
             int rc = reactor.Bridge.yield('n');
             RC.CheckAndThrowIOException("seacatcc.yield(renew)", rc);
         }
@@ -182,17 +206,17 @@ namespace SeaCatCSharpClient {
             SeaCatInternals.logDebug = mask.ContainsMask(LogFlag.DEBUG_GENERIC.Value);
         }
 
-        public static void CconfigureSocket(int port, SocketDomain domain, SocketType type, int protocol, string peerAddress, string peerPort) {
+        public static void ConfigureSocket(int port, SocketDomain domain, SocketType type, int protocol, string peerAddress, string peerPort) {
             int rc = reactor.Bridge.socket_configure_worker(port, domain.Value, type.Value, protocol, peerAddress, peerPort);
             RC.CheckAndThrowIOException("seacatcc.socket_configure_worker()", rc);
         }
 
         public static string GetClientId() {
-            return GetReactor()?.ClientId;
+            return Reactor?.ClientId;
         }
 
         public static string GetClientTag() {
-            return GetReactor()?.ClientTag;
+            return Reactor?.ClientTag;
         }
 
         private SeaCatClient() { }  // This is static-only class, so we hide constructor

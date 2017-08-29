@@ -6,10 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SeaCatCSharpClient.Utils {
-
+    
     public class FramePrinter {
 
-        static public string FrameToString(ByteBuffer frame) {
+        public static string FrameToString(ByteBuffer frame) {
             if (frame == null) return "[null]";
 
             byte fb = frame.GetByte(0);
@@ -25,18 +25,14 @@ namespace SeaCatCSharpClient.Utils {
             return "[C??]";
         }
 
-
         private static string DataFrameToString(ByteBuffer frame) {
             int streamId = frame.GetInt(0);
             int frameLength = frame.GetInt(4);
             byte frameFlags = (byte)(frameLength >> 24);
             frameLength &= 0xffffff;
 
-            return String.Format("[D %d %d%s]",
-                    streamId,
-                    frameLength,
-                    ((frameFlags & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) ? " FIN" : ""
-            );
+            var st = ((frameFlags & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) ? " FIN" : "";
+            return string.Format($"[D {streamId} {frameLength} {st}]");
         }
     }
 

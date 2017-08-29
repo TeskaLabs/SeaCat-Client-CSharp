@@ -7,6 +7,9 @@ using System.Net;
 
 namespace SeaCatCSharpClient.Http {
 
+    /// <summary>
+    /// Http statuses
+    /// </summary>
     public static class HttpStatus {
         private static Dictionary<int, string> messages = new Dictionary<int, string>()
         {

@@ -99,9 +99,6 @@
     <Compile Include="..\src\client\Http\HttpClientHandler.cs">
       <Link>Http\HttpClientHandler.cs</Link>
     </Compile>
-    <Compile Include="..\src\client\Http\HttpFrameContent.cs">
-      <Link>Http\HttpFrameContent.cs</Link>
-    </Compile>
     <Compile Include="..\src\client\Http\HttpSender.cs">
       <Link>Http\HttpSender.cs</Link>
     </Compile>

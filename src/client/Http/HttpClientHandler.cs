@@ -18,7 +18,11 @@ using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace SeaCatCSharpClient.Http {
 
+    /// <summary>
+    /// Http client handler that passes given http request to Seacat flow
+    /// </summary>
     public class SeacatHttpClientHandler : System.Net.Http.HttpClientHandler {
+
         private Reactor reactor;
         private int priority;
         public System.Net.Http.HttpClient HttpClient { get; set; }
@@ -27,15 +31,14 @@ namespace SeaCatCSharpClient.Http {
             this.reactor = reactor;
             this.priority = priority;
         }
-
-
+        
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken) {
             if (HttpClient == null) {
                 throw new ArgumentException("Http Client mustn't be null!");
             }
 
-            // create a new http sender for each call
+            // create a new http sender for each request
             return new HttpSender(HttpClient, reactor, priority).SendAsync(request, cancellationToken);
         }
     }

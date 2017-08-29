@@ -12,7 +12,8 @@ namespace SeaCatCSharpClient.Utils {
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class BlockingQueue<T> {
-
+        
+        // inner queue
         protected readonly Queue<T> queue;
         protected bool stopped;
 
@@ -104,6 +105,10 @@ namespace SeaCatCSharpClient.Utils {
 
     }
 
+    /// <summary>
+    /// Interface for non-blocking queue
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface Queue<T> {
         int Count { get; }
         void Enqueue(T item);
@@ -113,71 +118,81 @@ namespace SeaCatCSharpClient.Utils {
         ICollection<T> Items { get; }
     }
 
+    /// <summary>
+    /// Queue implementation that uses linked list
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class LinkedQueue<T> : Queue<T> {
+
+        private LinkedList<T> items = new LinkedList<T>();
+
         public int Count {
-            get { return _items.Count; }
+            get { return items.Count; }
         }
 
         public void Enqueue(T item) {
-            _items.AddLast(item);
+            items.AddLast(item);
         }
 
         public T Dequeue() {
-            if (_items.First == null)
+            if (items.First == null)
                 throw new InvalidOperationException("...");
 
-            var item = _items.First.Value;
-            _items.RemoveFirst();
+            var item = items.First.Value;
+            items.RemoveFirst();
 
             return item;
         }
 
         public void Remove(T item) {
-            _items.Remove(item);
+            items.Remove(item);
         }
 
         public void RemoveAt(int index) {
-            Remove(_items.Skip(index).First());
+            Remove(items.Skip(index).First());
         }
 
         public ICollection<T> Items {
-            get { return _items; }
+            get { return items; }
         }
-
-        private LinkedList<T> _items = new LinkedList<T>();
     }
 
+    /// <summary>
+    /// Queue implementation that uses list
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class ListQueue<T> : Queue<T> {
+
+        private List<T> items = new List<T>();
+
         public int Count {
-            get { return _items.Count; }
+            get { return items.Count; }
         }
 
         public void Enqueue(T item) {
-            _items.Add(item);
+            items.Add(item);
         }
 
         public T Dequeue() {
-            if (_items.First() == null)
+            if (items.First() == null)
                 throw new InvalidOperationException("...");
 
-            var item = _items.First();
-            _items.RemoveAt(0);
+            var item = items.First();
+            items.RemoveAt(0);
 
             return item;
         }
 
         public void Remove(T item) {
-            _items.Remove(item);
+            items.Remove(item);
         }
 
         public void RemoveAt(int index) {
-            Remove(_items.Skip(index).First());
+            Remove(items.Skip(index).First());
         }
 
         public ICollection<T> Items {
-            get { return _items; }
+            get { return items; }
         }
-
-        private List<T> _items = new List<T>();
     }
 }

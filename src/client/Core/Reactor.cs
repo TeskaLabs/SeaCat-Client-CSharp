@@ -81,7 +81,7 @@ namespace SeaCatCSharpClient.Core {
             // Start reactor thread
             this.ccoreThread = TaskHelper.CreateTask("CoreThread", () =>
             {
-                int crc = SeaCatClient.GetReactor().Bridge.run();
+                int crc = Bridge.run();
                 if (crc != RC.RC_OK) {
                     Logger.Debug(TAG, $"Return code {rc} in seacatcc.run");
                 }

@@ -8,13 +8,16 @@ using SeaCatCSharpClient.Utils;
 
 namespace SeaCatCSharpClient.Ping {
 
+    /// <summary>
+    /// Simple structure that can be used to test seacat connection using the ping flow
+    /// </summary>
     public class Ping {
 
-        protected double deadline; //TODO: Add support for deadline (skip&cancel objects that are behind deadline)
+        protected double deadline;
 
         public Ping() {
             PingId = -1;
-            deadline = SeaCatClient.GetReactor().Bridge.time() + 60.0;
+            deadline = SeaCatClient.Reactor.Bridge.time() + 60.0;
         }
 
         public int PingId { get; set; }
@@ -27,7 +30,9 @@ namespace SeaCatCSharpClient.Ping {
             Logger.Info("Ping", "===== PONG =====");
         }
 
-        public void Cancel() { }
+        public void Cancel() {
+            // nothing to do here
+        }
     }
 
 }

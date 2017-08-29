@@ -12,75 +12,32 @@ using SeaCatCSharpClient.Utils;
 
 namespace SeaCatCSharpClient.Http {
 
+    /// <summary>
+    /// Output stream that sends a request frames
+    /// </summary>
     public class OutboundStream : Stream, IFrameProvider {
 
         private Reactor reactor;
         private int streamId = -1;
-
-        // TODO: Allow parametrization of LinkedBlockingQueue capacity
         private BlockingQueue<ByteBuffer> frameQueue = new BlockingQueue<ByteBuffer>();
         private ByteBuffer currentFrame = null;
 
         private bool closed = false;
-
-        private int contentLength = 0;
         private int priority;
-
-        int writeTimeoutMillis = 30 * 1000;
-
-
+       
         public OutboundStream(Reactor reactor, int priority) {
             this.reactor = reactor;
             this.priority = priority;
         }
 
+        public int WriteTimeoutMillis { get; set; } = 30 * 1000;
+        public int ContentLength { get; set; } = 0;
+        public int FrameProviderPriority => priority;
+
         public void Launch(int streamId) {
             if (this.streamId != -1) throw new IOException("OutputStream is already launched");
             this.streamId = streamId;
             reactor.RegisterFrameProvider(this, true);
-        }
-
-        private ByteBuffer GetCurrentFrame() {
-            lock (this) {
-                if (closed) throw new IOException("OutputStream is already closed");
-
-                if (currentFrame == null) {
-                    currentFrame = reactor.FramePool.Borrow("HttpOutputStream.getCurrentFrame");
-                    currentFrame.Position = SPDY.HEADER_SIZE;
-                }
-
-                return currentFrame;
-            }
-        }
-
-        private void FlushCurrentFrame(bool fin_flag) {
-            lock (this) {
-                Debug.Assert(currentFrame != null);
-                Debug.Assert(fin_flag == closed);
-
-                ByteBuffer aFrame = currentFrame;
-                currentFrame = null;
-
-                SPDY.BuildDataFrameFlagLength(aFrame, fin_flag);
-
-                long timeoutMillis = this.writeTimeoutMillis;
-                if (timeoutMillis == 0) timeoutMillis = 1000 * 60 * 3; // 3 minutes timeout
-                long cutOfTimeMillis = DateTimeOffset.Now.Millisecond + timeoutMillis;
-
-                bool res = false;
-
-                while (res == false) {
-
-                    long awaitMillis = cutOfTimeMillis - DateTimeOffset.Now.Millisecond;
-                    if (awaitMillis <= 0) {
-                        throw new TimeoutException($"Write timeout: {writeTimeoutMillis}");
-                    }
-
-                    res = frameQueue.Enqueue(aFrame);
-                }
-
-                if (this.streamId != -1) reactor.RegisterFrameProvider(this, true);
-            }
         }
 
         /// <summary>
@@ -99,16 +56,13 @@ namespace SeaCatCSharpClient.Http {
                 currentFrame = null;
             }
         }
-
-        public int GetContentLength() {
-            return contentLength;
-        }
-
+        
         public new void Dispose() {
             if (closed) return; // Multiple calls to close() method are supported (and actually required)
 
             if (currentFrame == null) {
-                // TODO: This means that sub-optimal flush()/close() cycle happened - we will have to send empty DATA frame with FIN_FLAG set
+                // TODO: This means that sub-optimal flush()/close() cycle happened 
+                // - we will have to send empty DATA frame with FIN_FLAG set
                 GetCurrentFrame();
             }
             closed = true;
@@ -156,14 +110,13 @@ namespace SeaCatCSharpClient.Http {
             ByteBuffer frame = GetCurrentFrame();
             if (frame == null) throw new IOException("Frame not available");
             frame.PutBytes(buffer);
-            contentLength += count;
+            ContentLength += count;
 
             if (frame.Remaining == 0) FlushCurrentFrame(false);
         }
 
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) {
             var tsk = TaskHelper.CreateTask<int>("Write outbound", () => {
-                // TODO_REF use cancellation token
                 Write(buffer, offset, count);
                 return count;
             });
@@ -178,12 +131,13 @@ namespace SeaCatCSharpClient.Http {
             ByteBuffer frame = GetCurrentFrame();
             if (frame == null) throw new IOException("Frame not available");
             frame.PutByte((byte)value);
-            contentLength += 1;
+            ContentLength += 1;
 
             if (frame.Remaining == 0) FlushCurrentFrame(false);
         }
 
         public virtual void WriteTo(Stream stream) {
+            // TODO this should be implemented in the future
             throw new NotImplementedException("Not implemented!");
         }
 
@@ -210,22 +164,72 @@ namespace SeaCatCSharpClient.Http {
         }
 
         public ByteBuffer BuildFrame(Reactor reactor, out bool keep) {
+
             keep = false;
 
             Debug.Assert(streamId > 0);
 
+            // get the next frame and put id of this stream into it
             ByteBuffer frame = frameQueue.Dequeue();
             if (frame != null) {
                 frame.PutInt(0, streamId);
                 keep = !frameQueue.IsEmpty();
                 if ((frame.GetShort(4) & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) {
-                    Debug.Assert(keep == false);
+                    // never keep FIN frame
+                    Debug.Assert(!keep);
                 }
             }
             return frame;
         }
+        
+        private ByteBuffer GetCurrentFrame() {
+            lock (this) {
+                if (closed) throw new IOException("OutputStream is already closed");
 
-        public int FrameProviderPriority => priority;
+                if (currentFrame == null) {
+                    currentFrame = reactor.FramePool.Borrow("HttpOutputStream.getCurrentFrame");
+                    currentFrame.Position = SPDY.HEADER_SIZE;
+                }
+
+                return currentFrame;
+            }
+        }
+
+        /// <summary>
+        /// Once the write procedure is finished, the stream adds current frame to the frame queue 
+        /// and registers itself as a frame provider
+        /// </summary>
+        /// <param name="fin_flag"></param>
+        private void FlushCurrentFrame(bool finFlag) {
+            lock (this) {
+                Debug.Assert(currentFrame != null);
+                Debug.Assert(finFlag == closed);
+
+                ByteBuffer aFrame = currentFrame;
+                currentFrame = null;
+
+                SPDY.BuildDataFrameFlagLength(aFrame, finFlag);
+
+                long timeoutMillis = this.WriteTimeoutMillis;
+                if (timeoutMillis == 0) timeoutMillis = 1000 * 60 * 3; // 3 minutes timeout
+                long cutOfTimeMillis = DateTimeOffset.Now.Millisecond + timeoutMillis;
+
+                bool res = false;
+
+                while (res == false) {
+
+                    long awaitMillis = cutOfTimeMillis - DateTimeOffset.Now.Millisecond;
+                    if (awaitMillis <= 0) {
+                        throw new TimeoutException($"Write timeout: {WriteTimeoutMillis}");
+                    }
+
+                    res = frameQueue.Enqueue(aFrame);
+                }
+
+                if (this.streamId != -1) reactor.RegisterFrameProvider(this, true);
+            }
+        }
+
     }
 
 }

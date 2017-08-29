@@ -8,6 +8,8 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
+        <ScrollViewer Name="MainScroll" Height="500" Width="500" VerticalScrollBarVisibility="Visible">
+            <TextBlock Name="MainText" FontFamily="Courier New"></TextBlock>
+        </ScrollViewer>
     </Grid>
 </Page>

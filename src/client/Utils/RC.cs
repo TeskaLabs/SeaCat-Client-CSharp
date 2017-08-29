@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace SeaCatCSharpClient.Utils {
 
+    /// <summary>
+    /// Seacat response code helper
+    /// </summary>
     public static class RC {
 
         public enum SeacatState {
@@ -47,6 +50,11 @@ namespace SeaCatCSharpClient.Utils {
             if (rc != RC_OK) Logger.Error("CORE", $"SeaCat return code {rc} in {message}");
         }
 
+        /// <summary>
+        /// Translates seacat state
+        /// </summary>
+        /// <param name="state">state to translate</param>
+        /// <returns></returns>
         public static string TranslateState(string state) {
             var builder = new StringBuilder();
             foreach (char st in state) {
@@ -60,6 +68,11 @@ namespace SeaCatCSharpClient.Utils {
             return builder.ToString();
         }
 
+        /// <summary>
+        /// Translates yield code
+        /// </summary>
+        /// <param name="yld">code to translate</param>
+        /// <returns></returns>
         public static string TranslateYield(char yld) {
             if (Enum.IsDefined(typeof(SeacatYields), (SeacatYields)yld)) {
                 SeacatState yldVal = (SeacatState)yld;

@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 namespace SeaCatCSharpClient.Utils {
 
     /// <summary>
-    /// Implementation of memory buffer
+    /// Implementation of memory buffer for WinRT and WinPhone platforms since there aren't any usable alternative
     /// Buffer starts by default in WRITE mode, until you call the FLIP method, which puts it into READ mode
+    /// Data are stored in BigEndian format so that they can be used in network communication
     /// </summary>
     public class ByteBuffer {
 
@@ -50,8 +51,7 @@ namespace SeaCatCSharpClient.Utils {
             set { _pos = value; }
         }
 
-        public void Clear()
-        {
+        public void Clear() {
             _pos = 0;
             Limit = Capacity;
         }
@@ -98,36 +98,24 @@ namespace SeaCatCSharpClient.Utils {
 
         // Helper functions for the safe (but slow) access
         protected void Write(int count, ulong data) {
-            // Use network byte order -> BigEndian
-            //if (BitConverter.IsLittleEndian) {
-            //    for (int i = 0; i < count; i++) {
-            //        _buffer[_pos++] = (byte)(data >> i * 8);
-            //    }
-            //} else {
-                int offset = _pos;
-                for (int i = 0; i < count; i++) {
-                    _buffer[offset + count - 1 - i] = (byte)(data >> i * 8);
-                }
-                _pos += count;
-            // }
+            // TODO if you want LittleEndian variant, implement it here
+            int offset = _pos;
+            for (int i = 0; i < count; i++) {
+                _buffer[offset + count - 1 - i] = (byte)(data >> i * 8);
+            }
+            _pos += count;
         }
 
         protected ulong Read(int count) {
+            // TODO if you want LittleEndian variant, implement it here
             AssertOffsetAndLength(_pos, count);
             ulong r = 0;
 
-            // Use network byte order -> BigEndian
-            //if (BitConverter.IsLittleEndian) {
-            //    for (int i = 0; i < count; i++) {
-            //        r |= (ulong)_buffer[_pos++] << i * 8;
-            //    }
-            //} else {
-                int offset = _pos;
-                for (int i = 0; i < count; i++) {
-                    r |= (ulong)_buffer[offset + count - 1 - i] << i * 8;
-                }
-                _pos += count;
-            //}
+            int offset = _pos;
+            for (int i = 0; i < count; i++) {
+                r |= (ulong)_buffer[offset + count - 1 - i] << i * 8;
+            }
+            _pos += count;
             return r;
         }
 
@@ -180,7 +168,6 @@ namespace SeaCatCSharpClient.Utils {
             _pos = temp;
         }
 
-
         public void PutUint(uint value) {
             AssertOffsetAndLength(_pos, sizeof(uint));
             Write(sizeof(uint), (ulong)value);
@@ -230,7 +217,7 @@ namespace SeaCatCSharpClient.Utils {
                 buffer[i] = _buffer[index + i];
             }
 
-            // this is strange, however the same logic is implemented in Java
+            // this is weird, however the same logic is implemented in Java
             _pos += count;
         }
 
