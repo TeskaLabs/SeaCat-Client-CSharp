@@ -141,7 +141,7 @@ namespace SeaCatCSharpClient.Core {
             return frame;
         }
 
-        public int GetFrameProviderPriority() => 1;
+        public int FrameProviderPriority => 1;
 
     }
 

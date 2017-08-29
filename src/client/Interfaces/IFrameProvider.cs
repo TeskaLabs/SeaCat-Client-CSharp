@@ -10,6 +10,6 @@ namespace SeaCatCSharpClient.Interfaces {
 
     public interface IFrameProvider {
         ByteBuffer BuildFrame(Reactor reactor, out bool keep);
-        int GetFrameProviderPriority();
+        int FrameProviderPriority { get; }
     }
 }

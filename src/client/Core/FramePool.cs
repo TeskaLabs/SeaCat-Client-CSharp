@@ -8,7 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace SeaCatCSharpClient.Core {
-
+    
+    /// <summary>
+    /// Pool where frames not actually used are stored for future need
+    /// </summary>
     public class FramePool {
         private static string TAG = "FramePool";
         private Stack<ByteBuffer> stack = new Stack<ByteBuffer>();
@@ -34,7 +37,13 @@ namespace SeaCatCSharpClient.Core {
             this.highWaterMark = highWaterMark;
             this.frameCapacity = frameCapacity;
         }
-
+        
+        /// <summary>
+        /// Borrows a frame for specific reason
+        /// Note that all borrowed frames should be given back after some time
+        /// </summary>
+        /// <param name="reason"></param>
+        /// <returns></returns>
         public ByteBuffer Borrow(String reason) {
             Logger.Debug(TAG, $"Borrowing frame; reason: {reason}");
             ByteBuffer frame;
@@ -51,28 +60,24 @@ namespace SeaCatCSharpClient.Core {
             return frame;
         }
 
+        /// <summary>
+        /// Gives back a borrowed frame
+        /// </summary>
+        /// <param name="frame"></param>
         public void GiveBack(ByteBuffer frame) {
             Logger.Debug(TAG, $"Giving back frame of length: {frame.Length}");
 
             if (totalCount > lowWaterMark) {
+                // Discard the frame since the pool has enough frames available
                 frame.Reset();
                 Interlocked.Decrement(ref totalCount);
-                // Discard frame
             } else {
+                // Store the frame back to the pool
                 frame.Reset();
                 lock (stack) {
                     stack.Push(frame);
                     Logger.Debug(TAG, $"Frames on the stack: {stack.Count}");
                 }
-            }
-        }
-
-        private ByteBuffer CreateByteBuffer() {
-            lock (this) {
-                Interlocked.Increment(ref totalCount);
-                Logger.Debug(TAG, $"Creating byte buffer; total count: {totalCount}");
-                ByteBuffer frame = new ByteBuffer(frameCapacity);
-                return frame;
             }
         }
 
@@ -85,8 +90,18 @@ namespace SeaCatCSharpClient.Core {
         public int Capacity() => totalCount;
 
         public void HeartBeat(double now) {
-
+            // nothing to do here for now
         }
+
+        private ByteBuffer CreateByteBuffer() {
+            lock (this) {
+                Interlocked.Increment(ref totalCount);
+                Logger.Debug(TAG, $"Creating byte buffer; total count: {totalCount}");
+                ByteBuffer frame = new ByteBuffer(frameCapacity);
+                return frame;
+            }
+        }
+
     }
 
 }

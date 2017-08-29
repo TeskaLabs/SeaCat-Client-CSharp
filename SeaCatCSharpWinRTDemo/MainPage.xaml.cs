@@ -54,7 +54,7 @@ namespace SeaCatCSharpWinRTDemo
             TaskHelper.CreateTask("MainPage", () =>
             {
                 //DeleteSeacatDirAsync().Wait();
-                SeaCatClient.Initialize();
+                SeaCatClient.Initialize("mobi.seacat.test", null, "wp8", ApplicationData.Current.LocalFolder.Path);
                 SeaCatClient.SetLogMask(LogFlag.DEBUG_GENERIC);
                 SeaCatClient.GetReactor().isReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");

@@ -116,8 +116,6 @@ namespace SeaCatCSharpClient.Ping {
             }
         }
 
-        public int GetFrameProviderPriority() {
-            return 0;
-        }
+        public int FrameProviderPriority => 0;
     }
 }

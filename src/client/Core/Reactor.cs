@@ -14,7 +14,10 @@ using System.Net.Http;
 
 namespace SeaCatCSharpClient.Core {
 
-    public class Reactor : SeaCatCSharpBridge.ISeacatCoreAPI {
+    /// <summary>
+    /// Reactor responsible for communication between Seacat library and other layers
+    /// </summary>
+    public class Reactor : ISeacatCoreAPI {
         private static string TAG = "Reactor";
 
         private Task ccoreThread;
@@ -31,40 +34,42 @@ namespace SeaCatCSharpClient.Core {
         private BlockingQueue<IFrameProvider> frameProviders;
 
         private String lastState;
-        private String clientId = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        private String clientTag = "[AAAAAAAAAAAAAAAA]";
-        static String packageName = null;
 
 
         public FramePool FramePool { get; private set; }
         public SeacatBridge Bridge { get; private set; }
         public string ProxyHost { get; set; }
         public string ProxyPort { get; set; }
-
-
-        public void Init() {
-            if (packageName == null) packageName = "SeaCatCSharpClient";
-
+        public string ClientTag { get; private set; } = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        public string ClientId { get; private set; } = "[AAAAAAAAAAAAAAAA]";
+        
+        public void Init(string appName, string appSuffix, string platform, string storageDir) {
             FramePool = new FramePool();
-            // works as a background thread by default
+
+            try {
+                Bridge = new SeacatBridge();
+            } catch {
+                throw new Exception("Either Seacat library or Bridge couldn't be loaded!");
+            }
+
+            // init core thread
             this.ccoreThread = TaskHelper.CreateTask("CoreThread", () => _run());
 
-            Bridge = new SeacatBridge();
 
             StorageFolder local = ApplicationData.Current.LocalFolder;
             Package package = Package.Current;
 
 
-            int rc = Bridge.init((ISeacatCoreAPI)this, "mobi.seacat.test", "", "wp8",
-                local.Path + "\\.seacat"); // subdir must be specified since the core api adds a suffix to it
+            int rc = Bridge.init((ISeacatCoreAPI)this, appName, appSuffix ?? "", platform,
+                storageDir + "\\.seacat"); // subdir must be specified since the core api adds a suffix to it
 
             RC.CheckAndThrowIOException("seacatcc.init", rc);
 
             lastState = Bridge.state();
 
             var frameProvidersComparator = Comparer<IFrameProvider>.Create((p1, p2) => {
-                int p1pri = p1.GetFrameProviderPriority();
-                int p2pri = p2.GetFrameProviderPriority();
+                int p1pri = p1.FrameProviderPriority;
+                int p2pri = p2.FrameProviderPriority;
                 if (p1pri < p2pri) return -1;
                 else if (p1pri == p2pri) return 0;
                 else return 1;
@@ -94,7 +99,7 @@ namespace SeaCatCSharpClient.Core {
         public void Shutdown() {
             Logger.Debug(TAG, "Shutdown");
             int rc = Bridge.shutdown();
-            
+
             RC.CheckAndThrowIOException("seacatcc.shutdown", rc);
 
             TaskHelper.AbortTask(ccoreThread);
@@ -294,7 +299,7 @@ namespace SeaCatCSharpClient.Core {
             var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_GWCONN_RESET);
             EventDispatcher.Dispatcher.SendBroadcast(evt);
         }
-        
+
         public void CallbackStateChanged(string state) {
             Logger.Debug(TAG, "CallbackStateChanged to " + state);
 
@@ -322,8 +327,8 @@ namespace SeaCatCSharpClient.Core {
 
         public void CallbackClientidChanged(string clientId, string clientTag) {
             Logger.Debug(TAG, $"CallbackClientidChanged {clientId} : {clientTag}");
-            this.clientId = clientId;
-            this.clientTag = clientTag;
+            ClientId = clientId;
+            ClientTag = clientTag;
             var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_CLIENTID_CHANGED);
             evt.PutExtra(SeaCatClient.EXTRA_CLIENT_ID, clientId);
             evt.PutExtra(SeaCatClient.EXTRA_CLIENT_TAG, clientTag);
@@ -372,17 +377,6 @@ namespace SeaCatCSharpClient.Core {
             }
         }
 
-        public String GetClientTag() {
-            return this.clientTag;
-        }
-
-        public String GetClientId() {
-            return this.clientId;
-        }
-
-        public static void SetPackageName(String packageName) {
-            Reactor.packageName = packageName;
-        }
 
         private static ByteBuffWrapper CreateWrapper(ByteBuffer buffer) {
             if (buffer == null) {

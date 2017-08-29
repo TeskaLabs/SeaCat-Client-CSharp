@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
@@ -45,8 +46,9 @@ namespace SeaCatCSharpWP81Demo
             this.InitializeComponent();
 
             TaskHelper.CreateTask("MainPage", () => {
+
                 //DeleteSeacatDirAsync().Wait();
-                SeaCatClient.Initialize();
+                SeaCatClient.Initialize("mobi.seacat.test", null, "wp8", ApplicationData.Current.LocalFolder.Path);
                 SeaCatClient.SetLogMask(LogFlag.DEBUG_GENERIC);
                 SeaCatClient.GetReactor().isReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");

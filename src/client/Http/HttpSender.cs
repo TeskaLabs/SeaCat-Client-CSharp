@@ -105,7 +105,7 @@ namespace SeaCatCSharpClient.Http {
         public void Reset() {
             Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{HandlerId} Reset stream");
             Dispose();
-            
+
             responseCode = HttpStatusCode.InternalServerError;
             responseMessage = HttpStatus.GetMessage(500);
             responseReady.Set();
@@ -207,7 +207,7 @@ namespace SeaCatCSharpClient.Http {
         public ByteBuffer BuildFrame(Reactor reactor, out bool keep) {
             lock (this) {
                 Debug.Assert(this.reactor == reactor);
-                
+
                 bool fin_flag = (outboundStream == null);
 
                 ByteBuffer frame = reactor.FramePool.Borrow("HttpClientHandler.buildSYN_STREAM");
@@ -236,9 +236,7 @@ namespace SeaCatCSharpClient.Http {
         }
 
 
-        public int GetFrameProviderPriority() {
-            return this.priority;
-        }
+        public int FrameProviderPriority => priority;
 
 
         public bool ReceivedALX1_SYN_REPLY(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {

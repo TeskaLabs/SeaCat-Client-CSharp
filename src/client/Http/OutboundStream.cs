@@ -225,9 +225,7 @@ namespace SeaCatCSharpClient.Http {
             return frame;
         }
 
-        public int GetFrameProviderPriority() {
-            return priority;
-        }
+        public int FrameProviderPriority => priority;
     }
 
 }

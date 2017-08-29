@@ -69,25 +69,21 @@ namespace SeaCatCSharpClient {
         /// SeaCat client needs to be initialized prior any other function is called.<br/>
         /// Please refer to example above.
         /// </summary>
-        public static void Initialize() {
-            SeaCatClient.Initialize(CSR.CreateDefault(), null);
+        public static void Initialize(string appName, string platform, string storageDir) {
+            SeaCatClient.Initialize(CSR.CreateDefault(), appName, null, platform, storageDir);
         }
 
-        public static void Initialize(string applicationIdSuffix) {
-            SeaCatClient.Initialize(CSR.CreateDefault(), applicationIdSuffix);
+        public static void Initialize(string appName, string appSuffix, string platform, string storageDir) {
+            SeaCatClient.Initialize(CSR.CreateDefault(), appName, appSuffix, platform, storageDir);
         }
 
-        public static void Initialize(Task CSRworker) {
-            SeaCatClient.Initialize(CSRworker, null);
-        }
-
-        public static void Initialize(Task CSRworker, String applicationIdSuffix) {
-            SeaCatInternals.applicationIdSuffix = applicationIdSuffix;
+        public static void Initialize(Task CSRworker, string appName, string appSuffix, string platform, string storageDir) {
+            SeaCatInternals.applicationIdSuffix = appSuffix;
             SetCSRWorker(CSRworker);
 
             try {
                 reactor = new Reactor();
-                reactor.Init();
+                reactor.Init(appName, appSuffix, platform, storageDir);
                 // Process plugins
                 SeaCatPlugin.CommitCapabilities();
             } catch (IOException e) {
@@ -191,19 +187,12 @@ namespace SeaCatCSharpClient {
             RC.CheckAndThrowIOException("seacatcc.socket_configure_worker()", rc);
         }
 
-        public static void SetPackageName(string packageName) {
-            Reactor.SetPackageName(packageName);
-        }
-
         public static string GetClientId() {
-            Reactor r = GetReactor();
-            if (r == null) return null;
-            return r.GetClientId();
+            return GetReactor()?.ClientId;
         }
 
         public static string GetClientTag() {
-            Reactor r = GetReactor();
-            return r?.GetClientTag() ?? null;
+            return GetReactor()?.ClientTag;
         }
 
         private SeaCatClient() { }  // This is static-only class, so we hide constructor
