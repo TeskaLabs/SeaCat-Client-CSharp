@@ -1,12 +1,12 @@
-﻿using seacat_winrt_client.Core;
+﻿using SeaCatCSharpClient.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using seacat_winrt_client.Utils;
+using SeaCatCSharpClient.Utils;
 
-namespace seacat_winrt_client.Ping {
+namespace SeaCatCSharpClient.Ping {
 
     public class Ping {
 

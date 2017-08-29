@@ -4,6 +4,8 @@
 #ifdef _WINDOWS
 #ifdef SEACATCC_EXPORTS
 #define SEACATCC_API __declspec(dllexport)
+#else
+#define SEACATCC_API __declspec(dllimport)
 #endif
 #else
 #define SEACATCC_API extern

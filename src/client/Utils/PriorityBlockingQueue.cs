@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client.Utils {
+namespace SeaCatCSharpClient.Utils {
 
     public class PriorityBlockingQueue<TValue> : BlockingQueue<TValue> {
 

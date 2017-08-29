@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client.Utils {
+namespace SeaCatCSharpClient.Utils {
 
     /// <summary>
     /// Blocking queue that uses linked list 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client {
+namespace SeaCatCSharpClient {
 
     /// <summary>
     /// This class is for internal SeaCat client use only.

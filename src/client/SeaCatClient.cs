@@ -1,7 +1,7 @@
-﻿using seacat_winrt_client.Core;
-using seacat_winrt_client.Http;
-using seacat_winrt_client.Socket;
-using seacat_winrt_client.Utils;
+﻿using SeaCatCSharpClient.Core;
+using SeaCatCSharpClient.Http;
+using SeaCatCSharpClient.Socket;
+using SeaCatCSharpClient.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client {
+namespace SeaCatCSharpClient {
 
     /// <summary>
     /// This class represents the main interface of TeskaLabs SeaCat client for Windows Phone (aka WP SeaCat SDK).<br>

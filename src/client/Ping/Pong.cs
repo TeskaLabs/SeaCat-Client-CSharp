@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client.Ping {
+namespace SeaCatCSharpClient.Ping {
 
     public class Pong : Ping {
         public Pong(int pingId) {

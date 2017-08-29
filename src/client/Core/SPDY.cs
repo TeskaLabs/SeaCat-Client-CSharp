@@ -1,5 +1,5 @@
-﻿using seacat_winrt_client.Http;
-using seacat_winrt_client.Utils;
+﻿using SeaCatCSharpClient.Http;
+using SeaCatCSharpClient.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client.Core {
+namespace SeaCatCSharpClient.Core {
     public class SPDY {
         static public int HEADER_SIZE = 8;
 

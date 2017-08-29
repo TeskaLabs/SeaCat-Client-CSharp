@@ -1,11 +1,11 @@
-﻿using seacat_winrt_client.Core;
-using seacat_winrt_client.Utils;
+﻿using SeaCatCSharpClient.Core;
+using SeaCatCSharpClient.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client {
+namespace SeaCatCSharpClient {
     public class CSR {
 
         private Dictionary<string, string> paramMap = new Dictionary<string, string>();

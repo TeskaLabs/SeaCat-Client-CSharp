@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 using SeaCatCSharpBridge;
 using Windows.Storage;
 using Windows.ApplicationModel;
-using seacat_winrt_client.Utils;
-using seacat_winrt_client.Ping;
+using SeaCatCSharpClient.Utils;
+using SeaCatCSharpClient.Ping;
 using System.Threading;
-using seacat_winrt_client.Interfaces;
+using SeaCatCSharpClient.Interfaces;
 using System.IO;
 using System.Net.Http;
 
-namespace seacat_winrt_client.Core {
+namespace SeaCatCSharpClient.Core {
 
     public class Reactor : SeaCatCSharpBridge.ISeacatCoreAPI {
         private static string TAG = "Reactor";
@@ -47,7 +47,7 @@ namespace seacat_winrt_client.Core {
 
 
         public void Init() {
-            if (packageName == null) packageName = "seacat_winrt_client";
+            if (packageName == null) packageName = "SeaCatCSharpClient";
 
             FramePool = new FramePool();
             // works as a background thread by default

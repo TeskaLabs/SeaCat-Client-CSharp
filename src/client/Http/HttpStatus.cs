@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 
-namespace seacat_winrt_client.Http {
+namespace SeaCatCSharpClient.Http {
 
     public static class HttpStatus {
         private static Dictionary<int, string> messages = new Dictionary<int, string>()

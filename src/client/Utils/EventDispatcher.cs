@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Core;
 
-namespace seacat_winrt_client.Utils {
+namespace SeaCatCSharpClient.Utils {
 
     /// <summary>
     /// Event dispatcher that can be used to receive broadcasts from seacat client

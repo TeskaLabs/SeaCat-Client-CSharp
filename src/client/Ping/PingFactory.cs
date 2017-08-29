@@ -1,12 +1,12 @@
-﻿using seacat_winrt_client.Core;
-using seacat_winrt_client.Interfaces;
-using seacat_winrt_client.Utils;
+﻿using SeaCatCSharpClient.Core;
+using SeaCatCSharpClient.Interfaces;
+using SeaCatCSharpClient.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.UI.Xaml.Documents;
 
-namespace seacat_winrt_client.Ping {
+namespace SeaCatCSharpClient.Ping {
 
     public class PingFactory : IFrameConsumer, IFrameProvider {
 

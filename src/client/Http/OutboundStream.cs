@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using seacat_winrt_client.Core;
-using seacat_winrt_client.Interfaces;
-using seacat_winrt_client.Utils;
+using SeaCatCSharpClient.Core;
+using SeaCatCSharpClient.Interfaces;
+using SeaCatCSharpClient.Utils;
 
-namespace seacat_winrt_client.Http {
+namespace SeaCatCSharpClient.Http {
 
     public class OutboundStream : Stream, IFrameProvider {
 

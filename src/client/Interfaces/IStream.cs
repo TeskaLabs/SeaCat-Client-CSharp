@@ -1,5 +1,5 @@
-﻿using seacat_winrt_client.Core;
-using seacat_winrt_client.Utils;
+﻿using SeaCatCSharpClient.Core;
+using SeaCatCSharpClient.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client.Interfaces {
+namespace SeaCatCSharpClient.Interfaces {
 
     public interface IStream {
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client.Socket {
+namespace SeaCatCSharpClient.Socket {
 
     public class SocketDomain {
 

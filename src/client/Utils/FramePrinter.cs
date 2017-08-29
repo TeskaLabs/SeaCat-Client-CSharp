@@ -1,11 +1,11 @@
-﻿using seacat_winrt_client.Core;
+﻿using SeaCatCSharpClient.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client.Utils {
+namespace SeaCatCSharpClient.Utils {
 
     public class FramePrinter {
 

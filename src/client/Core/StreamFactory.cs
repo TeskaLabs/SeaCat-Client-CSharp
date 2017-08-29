@@ -1,5 +1,5 @@
-﻿using seacat_winrt_client.Interfaces;
-using seacat_winrt_client.Utils;
+﻿using SeaCatCSharpClient.Interfaces;
+using SeaCatCSharpClient.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client.Core {
+namespace SeaCatCSharpClient.Core {
 
     public class StreamFactory : IFrameConsumer, IFrameProvider {
         private static string TAG = "StreamFactory";

@@ -1,4 +1,4 @@
-﻿using seacat_winrt_client.Utils;
+﻿using SeaCatCSharpClient.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace seacat_winrt_client.Core {
+namespace SeaCatCSharpClient.Core {
 
     public class FramePool {
         private static string TAG = "FramePool";

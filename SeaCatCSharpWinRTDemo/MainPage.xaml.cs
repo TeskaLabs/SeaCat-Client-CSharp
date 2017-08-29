@@ -15,8 +15,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using seacat_winrt_client;
-using seacat_winrt_client.Utils;
+using SeaCatCSharpClient;
+using SeaCatCSharpClient.Utils;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
