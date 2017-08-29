@@ -1,12 +1,12 @@
 #ifndef _SEACATCC_ALL_WINDOWS_H_
 #define _SEACATCC_ALL_WINDOWS_H_
 
+#ifdef _WINDOWS
 #ifdef SEACATCC_EXPORTS
 #define SEACATCC_API __declspec(dllexport)
-#elif _WINRT_DLL
-#define SEACATCC_API extern
+#endif
 #else
-#define SEACATCC_API __declspec(dllimport)
+#define SEACATCC_API extern
 #endif
 
 // MSVC2013 don't understand these

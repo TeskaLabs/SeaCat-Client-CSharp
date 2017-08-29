@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <collection.h>
+#include <ppltasks.h>
 
 namespace seacat_winrt_bridge
 {

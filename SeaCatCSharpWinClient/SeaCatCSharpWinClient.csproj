@@ -129,6 +129,12 @@
       <Link>Utils\TaskHelper.cs</Link>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SeaCatCSharpWinBridge\SeaCatCSharpWinBridge.vcxproj">
+      <Project>{7741b64d-d2db-43aa-b039-b2be4d57c5d9}</Project>
+      <Name>SeaCatCSharpWinBridge</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

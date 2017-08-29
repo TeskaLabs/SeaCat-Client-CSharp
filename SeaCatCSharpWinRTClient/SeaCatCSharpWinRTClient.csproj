@@ -102,6 +102,10 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <ProjectReference Include="..\SeaCatCSharpWinRTBridge\SeaCatCSharpWinRTBridge.vcxproj">
+      <Project>{1270f43d-961f-4cfd-a780-41056b54b4fc}</Project>
+      <Name>SeaCatCSharpWinRTBridge</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

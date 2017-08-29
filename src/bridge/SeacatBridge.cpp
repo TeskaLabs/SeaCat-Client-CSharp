@@ -1,11 +1,12 @@
 ﻿// Class1.cpp
-#include "pch.h"
+#include <collection.h>
+#include <ppltasks.h>
 #include "SeacatBridge.h"
 #include <string>
 #include "SCUtils.h"
 
 extern "C" {
-#include "alts/windows/all_windows.h"
+#include "all_windows.h"
 #include "seacatcc.h"
 }
 

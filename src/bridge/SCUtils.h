@@ -1,6 +1,8 @@
 #pragma once
-#include "pch.h"
 #include <String>
+#include <collection.h>
+#include <ppltasks.h>
+
 using namespace Platform;
 
 String^ StringFromAscIIChars(char charBuff[]) {
