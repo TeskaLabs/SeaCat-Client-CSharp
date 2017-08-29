@@ -101,13 +101,6 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <ProjectReference Include="..\SeaCatCSharpWinRTBridge\SeaCatCSharpWinRTBridge.vcxproj">
-      <Project>{1270f43d-961f-4cfd-a780-41056b54b4fc}</Project>
-      <Name>SeaCatCSharpWinRTBridge</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\src\client\Core\FramePool.cs">
       <Link>Core\FramePool.cs</Link>
@@ -197,6 +190,12 @@
     <Compile Include="..\src\client\Utils\TaskHelper.cs">
       <Link>Utils\TaskHelper.cs</Link>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SeaCatCSharpWinRTBridge\SeaCatCSharpWinRTBridge.vcxproj">
+      <Project>{1270f43d-961f-4cfd-a780-41056b54b4fc}</Project>
+      <Name>SeaCatCSharpWinRTBridge</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
     <VisualStudioVersion>12.0</VisualStudioVersion>

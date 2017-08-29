@@ -91,7 +91,7 @@ namespace SeaCatCSharpClient {
                 // Process plugins
                 SeaCatPlugin.CommitCapabilities();
             } catch (IOException e) {
-                Utils.Logger.Error("SeaCatClient", $"Exception during SeaCat reactor start {e.Message}");
+                Logger.Error("SeaCatClient", $"Exception during SeaCat reactor start {e.Message}");
             }
         }
 
