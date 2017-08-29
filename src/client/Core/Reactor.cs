@@ -16,7 +16,6 @@ namespace SeaCatCSharpClient.Core {
 
     public class Reactor : SeaCatCSharpBridge.ISeacatCoreAPI {
         private static string TAG = "Reactor";
-        private static Reactor _instance;
 
         private Task ccoreThread;
 
@@ -36,9 +35,6 @@ namespace SeaCatCSharpClient.Core {
         private String clientTag = "[AAAAAAAAAAAAAAAA]";
         static String packageName = null;
 
-        public Reactor() {
-
-        }
 
         public FramePool FramePool { get; private set; }
         public SeacatBridge Bridge { get; private set; }
@@ -298,9 +294,7 @@ namespace SeaCatCSharpClient.Core {
             var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_GWCONN_RESET);
             EventDispatcher.Dispatcher.SendBroadcast(evt);
         }
-
-        private bool isReady = false;
-
+        
         public void CallbackStateChanged(string state) {
             Logger.Debug(TAG, "CallbackStateChanged to " + state);
 

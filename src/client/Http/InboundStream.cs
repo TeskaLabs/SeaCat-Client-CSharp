@@ -132,7 +132,6 @@ namespace SeaCatCSharpClient.Http {
 
         public override void Flush() {
             // nothing to do here
-            bool dummy = false;
         }
 
         public override Task FlushAsync(CancellationToken cancellationToken) {

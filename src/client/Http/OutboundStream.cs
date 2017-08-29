@@ -104,7 +104,7 @@ namespace SeaCatCSharpClient.Http {
             return contentLength;
         }
 
-        public void Dispose() {
+        public new void Dispose() {
             if (closed) return; // Multiple calls to close() method are supported (and actually required)
 
             if (currentFrame == null) {

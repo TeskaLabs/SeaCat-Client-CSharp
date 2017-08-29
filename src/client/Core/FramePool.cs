@@ -23,11 +23,6 @@ namespace SeaCatCSharpClient.Core {
         protected double before = 0;
         private int totalCount = 0;
 
-        // Preference keys for this package
-        private static String LOW_WATER_MARK = "lowWaterMark";
-        private static String HIGH_WATER_MARK = "highWaterMark";
-        private static String FRAME_CAPACITY = "frameCapacity";
-
         public FramePool() {
             this.lowWaterMark = DEFAULT_LOW_WATER_MARK;
             this.highWaterMark = DEFAULT_HIGH_WATER_MARK;
@@ -48,7 +43,7 @@ namespace SeaCatCSharpClient.Core {
                 lock (stack) {
                     frame = stack.Pop();
                 }
-            } catch (InvalidOperationException e) {
+            } catch (InvalidOperationException) {
                 if (totalCount >= highWaterMark) throw new IOException("No more available frames in the pool.");
                 frame = CreateByteBuffer();
             }

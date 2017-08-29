@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 
 namespace SeaCatCSharpClient.Http {
     public class HttpFrameContent : StreamContent {
-
-        private InboundStream stream;
-
+        
         public HttpFrameContent(InboundStream stream) : base(stream)
         {
         }

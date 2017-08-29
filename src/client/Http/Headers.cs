@@ -87,7 +87,7 @@ namespace SeaCatCSharpClient.Http {
             return result;
         }
 
-        public String ToString() {
+        public override string ToString() {
             StringBuilder result = new StringBuilder();
             for (int i = 0; i < Size(); i++) {
                 result.Append(Name(i)).Append(": ").Append(Value(i)).Append("\n");

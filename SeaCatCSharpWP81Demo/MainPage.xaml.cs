@@ -35,7 +35,7 @@ namespace SeaCatCSharpWP81Demo
                 foreach (var file in files) {
                     await file.DeleteAsync();
                 }
-            } catch (Exception e) {
+            } catch (Exception) {
                 return false;
             }
             return true;
@@ -55,7 +55,7 @@ namespace SeaCatCSharpWP81Demo
             }).Start();
         }
 
-        protected async void DownloadUrl() {
+        private void DownloadUrl() {
 
             var client = SeaCatClient.Open();
 
@@ -67,7 +67,7 @@ namespace SeaCatCSharpWP81Demo
             //client.Dispose();
         }
 
-        protected async void GetAsync(HttpClient client, int id) {
+        private async void GetAsync(HttpClient client, int id) {
             var getResp = await client.GetAsync("http://jsonplaceholder.seacat/posts/" + id.ToString() + "/comments");
             var strResp = await getResp.Content.ReadAsStringAsync();
 
@@ -81,7 +81,7 @@ namespace SeaCatCSharpWP81Demo
 
         }
 
-        protected async void PostAsync(HttpClient client, int id) {
+        private async void PostAsync(HttpClient client, int id) {
 
             var postString = "{\"userId\": 1, \"id\": " + id +
                              ", \"title\": \"HELLO WORLD\", \"body\": \"Hello Post message\"}";

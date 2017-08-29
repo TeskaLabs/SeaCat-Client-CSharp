@@ -12,13 +12,13 @@ namespace SeaCatCSharpClient.Core {
     public class SPDY {
         static public int HEADER_SIZE = 8;
 
-        static public short CNTL_FRAME_VERSION_SPD3 = 0x03;
-        static public short CNTL_FRAME_VERSION_ALX1 = 0xA1;
+        static public ushort CNTL_FRAME_VERSION_SPD3 = 0x03;
+        static public ushort CNTL_FRAME_VERSION_ALX1 = 0xA1;
 
-        static public short CNTL_TYPE_SYN_STREAM = 1;
-        static public short CNTL_TYPE_SYN_REPLY = 2;
-        static public short CNTL_TYPE_RST_STREAM = 3;
-        static public short CNTL_TYPE_PING = 6;
+        static public ushort CNTL_TYPE_SYN_STREAM = 1;
+        static public ushort CNTL_TYPE_SYN_REPLY = 2;
+        static public ushort CNTL_TYPE_RST_STREAM = 3;
+        static public ushort CNTL_TYPE_PING = 6;
 
         static public short CNTL_TYPE_STATS_REQ = 0xA1;
         static public short CNTL_TYPE_STATS_REP = 0xA2;
@@ -39,7 +39,7 @@ namespace SeaCatCSharpClient.Core {
             frame.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
 
             // Type
-            frame.PutShort(CNTL_TYPE_PING);
+            frame.PutShort((short)CNTL_TYPE_PING);
 
             // Flags and length
             frame.PutInt(4);
@@ -53,7 +53,7 @@ namespace SeaCatCSharpClient.Core {
             frame.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
 
             // Type
-            frame.PutShort(CNTL_TYPE_RST_STREAM);
+            frame.PutShort((short)CNTL_TYPE_RST_STREAM);
 
             // Flags and length
             frame.PutInt(8);
@@ -73,7 +73,7 @@ namespace SeaCatCSharpClient.Core {
             Debug.Assert((streamId & 0x80000000) == 0);
 
             buffer.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_ALX1));
-            buffer.PutShort(CNTL_TYPE_SYN_STREAM);      // Type
+            buffer.PutShort((short)CNTL_TYPE_SYN_STREAM);      // Type
             buffer.PutInt(0x04030201);                  // Flags and length (placeholder)
             buffer.PutInt(streamId);                    // Stream ID
             buffer.PutInt(0);                           // Associated-To-Stream-ID - not used
@@ -125,7 +125,7 @@ namespace SeaCatCSharpClient.Core {
             byte[] bytes;
             try {
                 bytes = System.Text.Encoding.UTF8.GetBytes(text);
-            } catch (Exception e) {
+            } catch (Exception) {
                 bytes = new byte[] { (byte)'?', (byte)'?', (byte)'?' };
             }
 
@@ -155,13 +155,15 @@ namespace SeaCatCSharpClient.Core {
             {
                 var output = System.Text.UTF8Encoding.UTF8.GetString(bytes, 0, length);
                 return output;
-            } catch (Exception e) {
+            } catch (Exception) {
                 return "???";
             }
         }
 
-        public static int BuildFrameVersionType(short cntlFrameVersion, short cntlType) {
-            int ret = cntlFrameVersion;
+        public static int BuildFrameVersionType(ushort cntlFrameVersion, ushort cntlType)
+        {
+            ushort ret = cntlFrameVersion;
+
             ret <<= 16;
             ret |= cntlType;
             return ret;

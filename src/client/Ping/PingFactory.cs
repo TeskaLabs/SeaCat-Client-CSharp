@@ -107,7 +107,7 @@ namespace SeaCatCSharpClient.Ping {
                     outboundPingQueue.Enqueue(new Pong(pingId));
                     try {
                         reactor.RegisterFrameProvider(this, true);
-                    } catch (Exception e) {
+                    } catch (Exception) {
                         // We can ignore error in this case
                     }
                 }
