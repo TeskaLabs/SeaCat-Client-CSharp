@@ -41,7 +41,7 @@ namespace SeaCatCSharpClient {
 
             caparr = caps.ToArray<string>();
 
-            int rc = SeaCatClient.GetReactor().Bridge.capabilities_store(caparr);
+            int rc = SeaCatClient.GetReactor().Bridge.characteristics_store(caparr);
             RC.CheckAndLogError("seacatcc.capabilities_store", rc);
             if (rc == 0) capabilitiesCommited = true;
         }

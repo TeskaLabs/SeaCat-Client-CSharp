@@ -55,6 +55,7 @@ namespace SeaCatCSharpWinRTDemo
             {
                 //DeleteSeacatDirAsync().Wait();
                 SeaCatClient.Initialize();
+                SeaCatClient.SetLogMask(LogFlag.DEBUG_GENERIC);
                 SeaCatClient.GetReactor().isReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");
 

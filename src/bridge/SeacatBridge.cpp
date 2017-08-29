@@ -3,8 +3,9 @@
 #include <ppltasks.h>
 #include "SeacatBridge.h"
 #include <string>
-#include "SCUtils.h"
+#include "BridgeUtils.h"
 
+// include seacat as C source
 extern "C" {
 #include "all_windows.h"
 #include "seacatcc.h"
@@ -14,30 +15,36 @@ using namespace SeaCatCSharpBridge;
 using namespace Platform;
 using namespace std;
 
+// ===================================== C <-> C++ METHODS =====================================
+
 ISeacatCoreAPI^ coreAPI = nullptr;
 SeacatBridge^ bridge = nullptr;
 
 // last used write buffer
 static ByteBuffWrapper^ writeBuffer = nullptr;
+// pointer to last used data of the write buffer
+void* writeBufferDataPtr = nullptr;
 // last used read buffer
 static ByteBuffWrapper^ readBuffer = nullptr;
-
-void* writeBufferDataPtr = nullptr;
+// pointer to last used data of the read buffer
 void* readBufferDataPtr = nullptr;
 
 static void logMsgManaged(char level, const char* message) {
-	coreAPI->LogMessage(level, StringFromAscIIChars(message));
+	coreAPI->LogMessage(level, CharToStr(message));
 }
 
 static void callback_write_ready(void ** data, uint16_t * data_len) {
 	logMsgManaged('M', "CALLBACK:: callback_write_ready");
 
-	assert(writeBuffer == nullptr);
+	assert(writeBufferDataPtr == nullptr);
 
+	// call the client and obtain data
 	writeBuffer = coreAPI->CallbackWriteReady();
+
+	// extract pointer to data and pass it to the output parameter
 	if (writeBuffer != nullptr) {
 		auto length = writeBuffer->limit - writeBuffer->position;
-		
+
 		*data = writeBuffer->data->Data + writeBuffer->position;
 		*data_len = writeBuffer->limit - writeBuffer->position;
 	}
@@ -52,9 +59,11 @@ static void callback_write_ready(void ** data, uint16_t * data_len) {
 static void callback_read_ready(void ** data, uint16_t * data_len) {
 	logMsgManaged('M', "CALLBACK:: callback_read_ready");
 
-	assert(readBuffer == nullptr);
-	
+	assert(readBufferDataPtr == nullptr);
+
+	// call the client and obtain data
 	readBuffer = coreAPI->CallbackReadReady();
+	// read buffer must always start at 0
 	assert(readBuffer->position == 0);
 	*data = readBuffer->data->Data + readBuffer->position;
 	*data_len = readBuffer->capacity - readBuffer->position;
@@ -66,6 +75,7 @@ static void callback_frame_received(void * data, uint16_t data_len) {
 	logMsgManaged('M', "CALLBACK:: callback_frame_received");
 
 	assert(readBuffer != nullptr);
+	// pass data to client for reading
 	coreAPI->CallbackFrameReceived(readBuffer, data_len);
 	readBuffer = nullptr;
 	readBufferDataPtr = nullptr;
@@ -74,6 +84,7 @@ static void callback_frame_received(void * data, uint16_t data_len) {
 static void callback_frame_return(void * data) {
 	logMsgManaged('M', "CALLBACK:: callback_frame_return");
 
+	// choose between read and write frame
 	if (readBuffer != nullptr && readBufferDataPtr != nullptr && data == readBufferDataPtr) {
 		coreAPI->CallbackFrameReturn(readBuffer);
 		readBuffer = nullptr;
@@ -101,71 +112,64 @@ static double callback_evloop_heartbeat(double now) {
 }
 
 // other hooks
-static void callback_evloop_started(void)
-{
+static void callback_evloop_started(void) {
 	logMsgManaged('M', "CALLBACK:: callback_evloop_started");
 	coreAPI->CallbackEvloopStarted();
 }
 
 
-static void callback_gwconn_reset(void)
-{
+static void callback_gwconn_reset(void) {
 	logMsgManaged('M', "CALLBACK:: callback_gwconn_reset");
 	coreAPI->CallbackGwconnReset();
 }
 
-static void callback_gwconn_connected(void)
-{
+static void callback_gwconn_connected(void) {
 	logMsgManaged('M', "CALLBACK:: callback_gwconn_connected");
 	coreAPI->CallbackGwconnConnected();
 }
 
-static void callback_state_changed(void)
-{
+static void callback_state_changed(void) {
 	logMsgManaged('M', "CALLBACK:: callback_state_changed");
-	
+
+	// obtain the state and pass it to the client
 	char* buffer = new char[SEACATCC_STATE_BUF_SIZE];
 	seacatcc_state(buffer);
-	auto str = StringFromAscIIChars(buffer);
+	auto str = CharToStr(buffer);
 	coreAPI->CallbackStateChanged(str);
 	delete[] buffer;
 }
 
-static void callback_clientid_changed(void)
-{
+static void callback_clientid_changed(void) {
 	logMsgManaged('M', "CALLBACK:: callback_clientid_changed");
-	
+
 	auto clientId = seacatcc_client_id();
 	auto clientTag = seacatcc_client_tag();
-	auto clientIdStr = StringFromAscIIChars(clientId);
-	auto clientTagStr = StringFromAscIIChars(clientTag);
+	auto clientIdStr = CharToStr(clientId);
+	auto clientTagStr = CharToStr(clientTag);
 
 	coreAPI->CallbackClientidChanged(clientIdStr, clientTagStr);
 }
 
+// ===================================== C++ <-> C# METHODS =====================================
 
-SeacatBridge::SeacatBridge()
-{
+
+SeacatBridge::SeacatBridge() {
 	bridge = this;
 }
 
 int SeacatBridge::init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuffix, String^ platform, String^ varDirChar) {
 	::coreAPI = coreAPI;
 
+	auto appIdCst = StringToUnmanaged(appId)->c_str();
+	auto appIdSuffixCst = appIdSuffix->IsEmpty() ? NULL : StringToUnmanaged(appIdSuffix)->c_str();
+	auto platformCst = StringToUnmanaged(platform)->c_str();
+	auto varDirCharCst = StringToUnmanaged(varDirChar)->c_str();
 
-	auto appIdCst = ConstCharFromString(appId)->c_str();
-	auto appIdSuffixCst = ConstCharFromString(appIdSuffix)->c_str();
-	auto platformCst = ConstCharFromString(platform)->c_str();
-	auto varDirCharCst = ConstCharFromString(varDirChar)->c_str();
-
-	auto locMask = seacatcc_log_mask_u();
-	locMask.value = 1;
-
-	seacatcc_log_set_mask(locMask);
+	// map log callback
 	seacatcc_log_setfnct(&logMsgManaged);
 
-
-	int rc = seacatcc_init("mobi.seacat.test", NULL, platformCst, varDirCharCst,
+	// initialize seacat
+	int rc = seacatcc_init(appIdCst, appIdSuffixCst, platformCst, varDirCharCst,
 		callback_write_ready,
 		callback_read_ready,
 		callback_frame_received,
@@ -176,6 +180,7 @@ int SeacatBridge::init(ISeacatCoreAPI^ coreAPI, String^ appId, String^ appIdSuff
 
 	assert(rc == SEACATCC_RC_OK);
 
+	// register hooks
 	rc = seacatcc_hook_register('E', callback_evloop_started);
 	assert(rc == SEACATCC_RC_OK);
 	rc = seacatcc_hook_register('R', callback_gwconn_reset);
@@ -202,13 +207,14 @@ int SeacatBridge::shutdown() {
 int SeacatBridge::yield(char16 what) {
 	// 8 bit max
 	if (what > 0xFF) return SEACATCC_RC_E_GENERIC;
-	return seacatcc_yield(what);
+	char whatCh = (char)what;
+	return seacatcc_yield(whatCh);
 }
 
 String^ SeacatBridge::state() {
 	char state_buf[SEACATCC_STATE_BUF_SIZE];
 	seacatcc_state(state_buf);
-	return StringFromAscIIChars(state_buf);
+	return CharToStr(state_buf);
 }
 
 void SeacatBridge::ppkgen_worker() {
@@ -216,34 +222,21 @@ void SeacatBridge::ppkgen_worker() {
 }
 
 int SeacatBridge::csrgen_worker(const Platform::Array<String^>^  params) {
-	int i, rc;
-	int paramCount = params->Length;
-	
-	const char** csr_entries = new const char*[paramCount+1];
-
-	for (i = 0; i<paramCount; i++)
-	{
-		csr_entries[i] = ConstCharFromString(params[i])->c_str();
-	}
-
-	csr_entries[paramCount] = NULL;
-
-	rc = seacatcc_csrgen_worker(csr_entries);
-
+	auto csr_entries = StringArrayToUnmanaged(params);
+	int rc = seacatcc_csrgen_worker(csr_entries);
 	delete[] csr_entries;
 	return rc;
 }
 
 int SeacatBridge::set_proxy_server_worker(String^ proxy_host, String^ proxy_port) {
-	const char * proxyHostChar = ConstCharFromString(proxy_host)->c_str();
-	const char * proxyPortChar = ConstCharFromString(proxy_port)->c_str();
+	const char * proxyHostChar = StringToUnmanaged(proxy_host)->c_str();
+	const char * proxyPortChar = StringToUnmanaged(proxy_port)->c_str();
 	int rc = seacatcc_set_proxy_server_worker(proxyHostChar, proxyPortChar);
-	
 	return rc;
 }
 
-// This is thread-safe (but quite expensive) method to obtain current time in format used by SeaCatCC event loop
 double SeacatBridge::time() {
+	// thread - safe(but quite expensive) method to obtain current time in format used by SeaCatCC event loop
 	return seacatcc_time();
 }
 
@@ -255,61 +248,52 @@ int SeacatBridge::log_set_mask(int64 bitmask) {
 
 int SeacatBridge::socket_configure_worker(int port, char16 domain, char16 type, int protocol, String^ peer_address, String^ peer_port) {
 
+	// select domain
 	int domain_int = -1;
-	switch (domain)
-	{
-	case 'u': domain_int = AF_UNIX; break;
-	case '4': domain_int = AF_INET; break;
-	case '6': domain_int = AF_INET6; break;
+	switch (domain) {
+		case 'u': domain_int = AF_UNIX; break;
+		case '4': domain_int = AF_INET; break;
+		case '6': domain_int = AF_INET6; break;
 	};
-	if (domain_int == -1)
-	{
+
+	if (domain_int == -1) {
 		seacatcc_log('E', "Unknown/invalid domain at socket_configure_worker: '%c'", domain);
 		return SEACATCC_RC_E_INVALID_ARGS;
 	}
 
+	// select socket type
 	int sock_type_int = -1;
-	switch (type)
-	{
-	case 's': sock_type_int = SOCK_STREAM; break;
-	case 'd': sock_type_int = SOCK_DGRAM; break;
+
+	switch (type) {
+		case 's': sock_type_int = SOCK_STREAM; break;
+		case 'd': sock_type_int = SOCK_DGRAM; break;
 	};
-	if (sock_type_int == -1)
-	{
+
+	if (sock_type_int == -1) {
 		seacatcc_log('E', "Unknown/invalid type at socket_configure_worker: '%c'", type);
 		return SEACATCC_RC_E_INVALID_ARGS;
 	}
 
-	const char * peerAddressChar = ConstCharFromString(peer_address)->c_str();	
-	const char * peerPortChar = ConstCharFromString(peer_port)->c_str();
+	// configure seacat worker
+	const char * peerAddressChar = StringToUnmanaged(peer_address)->c_str();
+	const char * peerPortChar = StringToUnmanaged(peer_port)->c_str();
 	int rc = seacatcc_socket_configure_worker(port, domain_int, sock_type_int, protocol, peerAddressChar, peerPortChar);
-
 	return rc;
 }
 
 String^ SeacatBridge::client_id() {
-	String^ result = StringFromAscIIChars(seacatcc_client_id());
+	String^ result = CharToStr(seacatcc_client_id());
 	return result;
 }
 
 String^  SeacatBridge::client_tag() {
-	String^ result = StringFromAscIIChars(seacatcc_client_tag());
+	String^ result = CharToStr(seacatcc_client_tag());
 	return result;
 }
 
-int SeacatBridge::capabilities_store(const Platform::Array<String^>^  capabilities) {
-	const char** cStore = new const char*[capabilities->Length+1];
-
-	for (int i = 0; i<capabilities->Length; i++)
-	{
-		cStore[i] = ConstCharFromString(capabilities[i])->c_str();
-	}
-
-	cStore[capabilities->Length] = NULL;
-
+int SeacatBridge::characteristics_store(const Platform::Array<String^>^  capabilities) {
+	auto cStore = StringArrayToUnmanaged(capabilities);
 	int rc = seacatcc_characteristics_store(cStore);
-
 	delete[] cStore;
-
 	return rc;
 }

@@ -55,7 +55,7 @@ namespace SeaCatCSharpClient.Core {
             Package package = Package.Current;
 
 
-            int rc = Bridge.init((ISeacatCoreAPI)this, package.Id.Name, "dev", "wp8",
+            int rc = Bridge.init((ISeacatCoreAPI)this, "mobi.seacat.test", "", "wp8",
                 local.Path + "\\.seacat"); // subdir must be specified since the core api adds a suffix to it
 
             RC.CheckAndThrowIOException("seacatcc.init", rc);
