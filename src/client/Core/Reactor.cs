@@ -21,14 +21,12 @@ namespace SeaCatCSharpClient.Core {
         private static string TAG = "Reactor";
 
         private Task ccoreThread;
-
-        object eventLoopNotStartedlock = new object();
+        private object eventLoopNotStartedlock = new object();
         private EventWaitHandle eventLoopStarted = new EventWaitHandle(false, EventResetMode.ManualReset);
 
-        public EventWaitHandle isReadyHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
-
+        public EventWaitHandle IsReadyHandle { get; private set; } = new EventWaitHandle(false, EventResetMode.ManualReset);
         public PingFactory PingFactory { get; set; }
-        public StreamFactory streamFactory;
+        public StreamFactory StreamFactory { get; private set; }
 
         private Dictionary<int, IFrameConsumer> cntlFrameConsumers = new Dictionary<int, IFrameConsumer>();
         private BlockingQueue<IFrameProvider> frameProviders;
@@ -80,9 +78,9 @@ namespace SeaCatCSharpClient.Core {
 
 
             // Create and register stream factory as control frame consumer
-            streamFactory = new StreamFactory();
-            cntlFrameConsumers.Add(SPDY.BuildFrameVersionType(SPDY.CNTL_FRAME_VERSION_ALX1, SPDY.CNTL_TYPE_SYN_REPLY), streamFactory);
-            cntlFrameConsumers.Add(SPDY.BuildFrameVersionType(SPDY.CNTL_FRAME_VERSION_SPD3, SPDY.CNTL_TYPE_RST_STREAM), streamFactory);
+            StreamFactory = new StreamFactory();
+            cntlFrameConsumers.Add(SPDY.BuildFrameVersionType(SPDY.CNTL_FRAME_VERSION_ALX1, SPDY.CNTL_TYPE_SYN_REPLY), StreamFactory);
+            cntlFrameConsumers.Add(SPDY.BuildFrameVersionType(SPDY.CNTL_FRAME_VERSION_SPD3, SPDY.CNTL_TYPE_RST_STREAM), StreamFactory);
 
 
             // Create and register ping factory as control frame consumer
@@ -222,7 +220,7 @@ namespace SeaCatCSharpClient.Core {
                 if ((fb & (1L << 7)) != 0) {
                     giveBackFrame = ReceivedControlFrame(frame);
                 } else {
-                    giveBackFrame = streamFactory.ReceivedDataFrame(this, frame);
+                    giveBackFrame = StreamFactory.ReceivedDataFrame(this, frame);
                 }
             } catch (Exception e) {
                 Logger.Error(TAG, $"Erorr while receiving frame: {e.Message}");
@@ -295,13 +293,13 @@ namespace SeaCatCSharpClient.Core {
         public void CallbackGwconnReset() {
             Logger.Debug(TAG, "CallbackGwconnReset");
             PingFactory.Reset();
-            streamFactory.Reset();
+            StreamFactory.Reset();
             var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_GWCONN_RESET);
             EventDispatcher.Dispatcher.SendBroadcast(evt);
         }
 
         public void CallbackStateChanged(string state) {
-            Logger.Debug(TAG, "CallbackStateChanged to " + state);
+            Logger.Debug(TAG, $"CallbackStateChanged to {state} :: {RC.TranslateState(state)}");
 
             var evt = new EventMessage(SeaCatClient.ACTION_SEACAT_STATE_CHANGED);
             evt.PutExtra(SeaCatClient.EXTRA_STATE, state);
@@ -317,9 +315,9 @@ namespace SeaCatCSharpClient.Core {
             bool isReady = (state[3] == 'Y' && state[4] == 'N' && state[0] != 'f');
 
             if (isReady) {
-                this.isReadyHandle.Set();
+                this.IsReadyHandle.Set();
             } else {
-                this.isReadyHandle.Reset(); ;
+                this.IsReadyHandle.Reset(); ;
             }
 
             lastState = state;
@@ -357,7 +355,8 @@ namespace SeaCatCSharpClient.Core {
                 return true;
             }
 
-            IFrameConsumer consumer = cntlFrameConsumers[frameVersionType];
+            IFrameConsumer consumer = null;
+            cntlFrameConsumers.TryGetValue(frameVersionType, out consumer);
             if (consumer == null) {
                 Logger.Error(TAG, $"Unidentified Control frame received: {frame.Limit} {frameVersionType} {frameLength} {frameFlags}");
                 return true;

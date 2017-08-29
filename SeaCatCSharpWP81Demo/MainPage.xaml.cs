@@ -50,7 +50,7 @@ namespace SeaCatCSharpWP81Demo
                 //DeleteSeacatDirAsync().Wait();
                 SeaCatClient.Initialize("mobi.seacat.test", null, "wp8", ApplicationData.Current.LocalFolder.Path);
                 SeaCatClient.SetLogMask(LogFlag.DEBUG_GENERIC);
-                SeaCatClient.GetReactor().isReadyHandle.WaitOne();
+                SeaCatClient.GetReactor().IsReadyHandle.WaitOne();
                 Logger.Debug("Seacat", "====== SEACAT IS READY ======");
 
                 TaskHelper.CreateTask("Download", DownloadUrl).Start();

@@ -212,7 +212,7 @@ namespace SeaCatCSharpClient.Http {
 
                 ByteBuffer frame = reactor.FramePool.Borrow("HttpClientHandler.buildSYN_STREAM");
 
-                streamId = reactor.streamFactory.RegisterStream(this);
+                streamId = reactor.StreamFactory.RegisterStream(this);
                 inboundStream.SetStreamId(streamId);
 
                 // Build SYN_STREAM frame

@@ -58,7 +58,7 @@ namespace SeaCatCSharpClient.Http {
                 // This stream is closed -> send RST_STREAM back
                 frame.Clear();
                 Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{handlerId} Sending STREAM_ALREADY_CLOSED");
-                reactor.streamFactory.SendRST_STREAM(frame, reactor, this.streamId, SPDY.RST_STREAM_STATUS_STREAM_ALREADY_CLOSED);
+                reactor.StreamFactory.SendRST_STREAM(frame, reactor, this.streamId, SPDY.RST_STREAM_STATUS_STREAM_ALREADY_CLOSED);
                 return false;
             }
             Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{handlerId} Adding frame of length {frame.Length} into queue");
