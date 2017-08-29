@@ -9,6 +9,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SeaCatCSharpClient.Core {
+
+    /// <summary>
+    /// SPDY protocol helper methods and attributes
+    /// </summary>
     public class SPDY {
         static public int HEADER_SIZE = 8;
 
@@ -34,6 +38,11 @@ namespace SeaCatCSharpClient.Core {
         static public int RST_STREAM_STATUS_INVALID_STREAM = 2;
         static public int RST_STREAM_STATUS_STREAM_ALREADY_CLOSED = 9;
 
+        /// <summary>
+        /// Builds SPD3 Ping frame
+        /// </summary>
+        /// <param name="frame">frame to write to</param>
+        /// <param name="pingId">id of the ping</param>
         public static void BuildSPD3Ping(ByteBuffer frame, int pingId) {
             // It is SPDY v3 control frame 
             frame.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
@@ -48,6 +57,12 @@ namespace SeaCatCSharpClient.Core {
             frame.PutInt(pingId);
         }
 
+        /// <summary>
+        /// Builds SPD3 RST stream frame
+        /// </summary>
+        /// <param name="frame">frame to write to</param>
+        /// <param name="streamId">id of the stream</param>
+        /// <param name="statusCode">status code</param>
         public static void BuildSPD3RstStream(ByteBuffer frame, int streamId, int statusCode) {
             // It is SPDY v3 control frame 
             frame.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_SPD3));
@@ -65,22 +80,44 @@ namespace SeaCatCSharpClient.Core {
             frame.PutInt(statusCode);
         }
 
-        public static void BuildALX1SynStream(ByteBuffer buffer, int streamId, Uri url, String method, Headers headers, bool fin_flag, int priority) {
-            BuildALX1SynStream(buffer, streamId, url.Host, method, url.AbsolutePath, headers, fin_flag, priority);
+        /// <summary>
+        /// Builds ALX1 Syn stream frame
+        /// </summary>
+        /// <param name="frame">frame to write to</param>
+        /// <param name="streamId">id of the stream</param>
+        /// <param name="url">target url</param>
+        /// <param name="method">http method</param>
+        /// <param name="headers">collection of http headers</param>
+        /// <param name="finFlag">indicator whether a fin flag should be appended</param>
+        /// <param name="priority">priority</param>
+        public static void BuildALX1SynStream(ByteBuffer frame, int streamId, Uri url, string method, Headers headers, bool finFlag, int priority) {
+            BuildALX1SynStream(frame, streamId, url.Host, method, url.AbsolutePath, headers, finFlag, priority);
         }
 
-        public static void BuildALX1SynStream(ByteBuffer buffer, int streamId, String host, String method, String path, Headers headers, bool fin_flag, int priority) {
+        /// <summary>
+        /// Builds ALX1 Syn Stream frame
+        /// </summary>
+        /// <param name="frame">frame to write to</param>
+        /// <param name="streamId">id of the stream</param>
+        /// <param name="host">target host</param>
+        /// <param name="method">http method</param>
+        /// <param name="path">target path</param>
+        /// <param name="headers">collection of http headers</param>
+        /// <param name="finFlag">indicator whether a fin flag should be appended</param>
+        /// <param name="priority">priority</param>
+        public static void BuildALX1SynStream(ByteBuffer frame, int streamId, string host, string method, string path, Headers headers, bool finFlag, int priority) {
+
             Debug.Assert((streamId & 0x80000000) == 0);
 
-            buffer.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_ALX1));
-            buffer.PutShort((short)CNTL_TYPE_SYN_STREAM);      // Type
-            buffer.PutInt(0x04030201);                  // Flags and length (placeholder)
-            buffer.PutInt(streamId);                    // Stream ID
-            buffer.PutInt(0);                           // Associated-To-Stream-ID - not used
-            buffer.PutByte((byte)((priority & 0x07) << 5));   // Priority
-            buffer.PutByte((byte)0x00);                     // Slot (reserved)
+            frame.PutShort((short)(0x8000 | CNTL_FRAME_VERSION_ALX1));  // Frame Version Type
+            frame.PutShort((short)CNTL_TYPE_SYN_STREAM);                // Type
+            frame.PutInt(0x04030201);                                   // Flags and length (placeholder)
+            frame.PutInt(streamId);                                     // Stream ID
+            frame.PutInt(0);                                            // Associated-To-Stream-ID - not used
+            frame.PutByte((byte)((priority & 0x07) << 5));              // Priority
+            frame.PutByte((byte)0x00);                                  // Slot (reserved)
 
-            Debug.Assert(buffer.Position == 18);
+            Debug.Assert(frame.Position == 18);
 
             // Strip .seacat from hosts
             // That's for historical reason (we need to support .seacat extension this way)
@@ -89,43 +126,54 @@ namespace SeaCatCSharpClient.Core {
                 if (lastPeriodPos > 0) host = host.Substring(0, lastPeriodPos);
             }
 
-            AppendVLEString(buffer, host);
-            AppendVLEString(buffer, method);
-            AppendVLEString(buffer, path);
+            AppendVLEString(frame, host);
+            AppendVLEString(frame, method);
+            AppendVLEString(frame, path);
 
             for (int i = 0; i < headers.Size(); i++) {
-                String header = headers.Name(i);
+                string header = headers.Name(i);
                 if (header == null) continue;
                 if (header.ToLower() == "host") continue;
                 if (header.ToLower() == "connection") continue;
 
-                String value = headers.Value(i);
+                string value = headers.Value(i);
                 if (value == null) continue;
 
-                AppendVLEString(buffer, header);
-                AppendVLEString(buffer, value);
+                AppendVLEString(frame, header);
+                AppendVLEString(frame, value);
             }
 
             // Update length entry
-            int flagLength = buffer.Position - HEADER_SIZE;
+            int flagLength = frame.Position - HEADER_SIZE;
             Debug.Assert(flagLength < 0x01000000);
-            flagLength |= (fin_flag ? FLAG_FIN : 0) << 24;
-            buffer.PutInt(4, flagLength); // Update length of frame
+            flagLength |= (finFlag ? FLAG_FIN : 0) << 24;
+            frame.PutInt(4, flagLength); // Update length of frame
         }
 
-        public static void BuildDataFrameFlagLength(ByteBuffer buffer, bool fin_flag) {
-            Debug.Assert(buffer != null);
-            int flagLength = buffer.Position - HEADER_SIZE;
+        /// <summary>
+        /// Appends length of data frame
+        /// </summary>
+        /// <param name="frame">frame to write to</param>
+        /// <param name="finFlag">indicator whether a FIN flag should be appended</param>
+        public static void BuildDataFrameFlagLength(ByteBuffer frame, bool finFlag) {
+            Debug.Assert(frame != null);
+            int flagLength = frame.Position - HEADER_SIZE;
             Debug.Assert(flagLength < 0x01000000);
-            flagLength |= (fin_flag ? FLAG_FIN : 0) << 24;
-            buffer.PutInt(4, flagLength); // Update length of frame
+            flagLength |= (finFlag ? FLAG_FIN : 0) << 24;
+            frame.PutInt(4, flagLength); // Update length of frame
         }
 
-        private static void AppendVLEString(ByteBuffer buffer, String text) {
+        /// <summary>
+        /// Appends a UTF8 string
+        /// </summary>
+        /// <param name="frame">frame to write to</param>
+        /// <param name="text">text to write</param>
+        private static void AppendVLEString(ByteBuffer frame, String text) {
             byte[] bytes;
             try {
                 bytes = System.Text.Encoding.UTF8.GetBytes(text);
             } catch (Exception) {
+                Logger.Error("SPDY", $"Can't append VLES string: {text}");
                 bytes = new byte[] { (byte)'?', (byte)'?', (byte)'?' };
             }
 
@@ -133,26 +181,30 @@ namespace SeaCatCSharpClient.Core {
 
             // Append length
             if (bytes.Length >= 0xFA) {
-                buffer.PutByte((byte)0xFF);
-                buffer.PutShort((short)bytes.Length);
+                frame.PutByte((byte)0xFF);
+                frame.PutShort((short)bytes.Length);
             } else {
-                buffer.PutByte((byte)bytes.Length);
+                frame.PutByte((byte)bytes.Length);
             }
 
-            buffer.PutBytes(bytes);
+            frame.PutBytes(bytes);
         }
 
-        public static String ParseVLEString(ByteBuffer buffer) {
-            int length = ((short)(buffer.GetByte() & 0xff));
-            if (length == 0xFF) length = ((int)(buffer.GetShort() & 0xffff));
+        /// <summary>
+        /// Parses VLES string from given frame
+        /// </summary>
+        /// <param name="frame">frame to read from</param>
+        /// <returns></returns>
+        public static String ParseVLEString(ByteBuffer frame) {
+            int length = ((short)(frame.GetByte() & 0xff));
+            if (length == 0xFF) length = ((int)(frame.GetShort() & 0xffff));
 
             Debug.Assert(length >= 0);
 
             byte[] bytes = new byte[length];
-            buffer.GetBytes(bytes, buffer.Position, length);
+            frame.GetBytes(bytes, frame.Position, length);
 
-            try
-            {
+            try {
                 var output = UTF8Encoding.UTF8.GetString(bytes, 0, length);
                 return output;
             } catch (Exception) {
@@ -160,15 +212,12 @@ namespace SeaCatCSharpClient.Core {
             }
         }
 
-        public static int BuildFrameVersionType(ushort cntlFrameVersion, ushort cntlType)
-        {
+        public static int BuildFrameVersionType(ushort cntlFrameVersion, ushort cntlType) {
             uint ret = cntlFrameVersion;
-
             ret <<= 16;
             ret |= cntlType;
             return (int)ret;
         }
-
     }
 
 }

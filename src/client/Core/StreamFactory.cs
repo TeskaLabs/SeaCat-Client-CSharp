@@ -11,18 +11,18 @@ using System.Threading.Tasks;
 
 namespace SeaCatCSharpClient.Core {
 
+    /// <summary>
+    /// Factory that orchestrates streams which handle arrived frames.
+    /// </summary>
     public class StreamFactory : IFrameConsumer, IFrameProvider {
-        private static string TAG = "StreamFactory";
-        private IntegerCounter streamIdSequence = new IntegerCounter(1); // Synchronized access via streams!
-        private Dictionary<int, IStream> streams = new Dictionary<int, IStream>(); // Synchronized access!
-        private BlockingQueue<ByteBuffer> outboundFrameQueue = new BlockingQueue<ByteBuffer>(); // Access to this element has to be synchronized
 
-        ///
+        private static string TAG = "StreamFactory";
+        private IntegerCounter streamIdSequence = new IntegerCounter(1);
+        private Dictionary<int, IStream> streams = new Dictionary<int, IStream>();
+        private BlockingQueue<ByteBuffer> outboundFrameQueue = new BlockingQueue<ByteBuffer>();
 
         public StreamFactory() {
         }
-
-        ///
 
         public int RegisterStream(IStream stream) {
             lock (this) {
@@ -39,6 +39,9 @@ namespace SeaCatCSharpClient.Core {
             }
         }
 
+        /// <summary>
+        /// Resets all streams
+        /// </summary>
         public void Reset() {
             lock (this) {
                 foreach (var key in streams.Keys) {
@@ -56,14 +59,17 @@ namespace SeaCatCSharpClient.Core {
         protected bool ReceivedALX1_SYN_REPLY(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {
             int streamId = frame.GetInt();
             IStream stream = GetStream(streamId);
+
             if (stream == null) {
                 Logger.Error(TAG, $"ReceivedALX1_SYN_REPLY stream not found {streamId} (can be closed already)");
+                // reset the stream and send INVALID status
                 frame.Reset();
                 SendRST_STREAM(frame, reactor, streamId, SPDY.RST_STREAM_STATUS_INVALID_STREAM);
                 return false;
             }
 
             bool ret = stream.ReceivedALX1_SYN_REPLY(reactor, frame, frameLength, frameFlags);
+            // if a FIN stream arrived, unregister the stream since it is no longer needed
             if ((frameFlags & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) UnregisterStream(streamId);
             return ret;
         }
@@ -71,6 +77,7 @@ namespace SeaCatCSharpClient.Core {
 
         protected bool ReceivedSPD3_RST_STREAM(Reactor reactor, ByteBuffer frame, int frameLength, byte frameFlags) {
             int streamId = frame.GetInt();
+
             IStream stream = GetStream(streamId);
             if (stream == null) {
                 Logger.Error(TAG, $"receivedSPD3_RST_STREAM stream not found: {streamId} (can be closed already)");
@@ -83,12 +90,13 @@ namespace SeaCatCSharpClient.Core {
             return ret;
         }
 
-
         public bool ReceivedDataFrame(Reactor reactor, ByteBuffer frame) {
             int streamId = frame.GetInt();
             IStream stream = GetStream(streamId);
+
             if (stream == null) {
-                Logger.Error(TAG, $"receivedDataFrame stream not found: {streamId} (can be closed already)");
+                Logger.Error(TAG, $"ReceivedDataFrame: stream not found: {streamId} (can be closed already)");
+                // reset the stream and send INVALID status
                 frame.Reset();
                 SendRST_STREAM(frame, reactor, streamId, SPDY.RST_STREAM_STATUS_INVALID_STREAM);
                 return false;
@@ -115,11 +123,12 @@ namespace SeaCatCSharpClient.Core {
             }
         }
 
-
         public void SendRST_STREAM(ByteBuffer frame, Reactor reactor, int streamId, int statusCode) {
+
             SPDY.BuildSPD3RstStream(frame, streamId, statusCode);
 
             try {
+                // add frame into outbound queue
                 AddOutboundFrame(frame, reactor);
             } catch (IOException e) {
                 reactor.FramePool.GiveBack(frame); // Return frame
@@ -133,6 +142,14 @@ namespace SeaCatCSharpClient.Core {
         }
 
         public ByteBuffer BuildFrame(Reactor reactor, out bool keep) {
+            return GetFrameFromOutboundQueue(reactor, out keep);
+        }
+
+        /// <summary>
+        /// Gets a waiting frame from outbound queue
+        /// </summary>
+        /// <returns></returns>
+        private ByteBuffer GetFrameFromOutboundQueue(Reactor reactor, out bool keep) {
             ByteBuffer frame;
 
             frame = outboundFrameQueue.Dequeue();
