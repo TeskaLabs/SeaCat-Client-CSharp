@@ -20,12 +20,12 @@ namespace SeaCatCSharpClient.Core {
         static public ushort CNTL_TYPE_RST_STREAM = 3;
         static public ushort CNTL_TYPE_PING = 6;
 
-        static public short CNTL_TYPE_STATS_REQ = 0xA1;
-        static public short CNTL_TYPE_STATS_REP = 0xA2;
+        static public ushort CNTL_TYPE_STATS_REQ = 0xA1;
+        static public ushort CNTL_TYPE_STATS_REP = 0xA2;
 
-        static public short CNTL_TYPE_CSR = 0xC1;
-        static public short CNTL_TYPE_CERT_QUERY = 0xC2;
-        static public short CNTL_TYPE_CERT = 0xC3;
+        static public ushort CNTL_TYPE_CSR = 0xC1;
+        static public ushort CNTL_TYPE_CERT_QUERY = 0xC2;
+        static public ushort CNTL_TYPE_CERT = 0xC3;
 
         static public byte FLAG_FIN = (byte)0x01;
         static public byte FLAG_UNIDIRECTIONAL = (byte)0x02;
@@ -153,7 +153,7 @@ namespace SeaCatCSharpClient.Core {
 
             try
             {
-                var output = System.Text.UTF8Encoding.UTF8.GetString(bytes, 0, length);
+                var output = UTF8Encoding.UTF8.GetString(bytes, 0, length);
                 return output;
             } catch (Exception) {
                 return "???";
@@ -162,11 +162,11 @@ namespace SeaCatCSharpClient.Core {
 
         public static int BuildFrameVersionType(ushort cntlFrameVersion, ushort cntlType)
         {
-            ushort ret = cntlFrameVersion;
+            uint ret = cntlFrameVersion;
 
             ret <<= 16;
             ret |= cntlType;
-            return ret;
+            return (int)ret;
         }
 
     }

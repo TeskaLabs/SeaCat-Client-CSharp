@@ -10,23 +10,34 @@ namespace SeaCatCSharpClient.Utils {
     public static class RC {
 
         public enum SeacatState {
-            SEACATCC_STATE_NOT_INITED = '*',
-            SEACATCC_STATE_INITED = 'i',
-            SEACATCC_STATE_IDLING = 'D',
-            SEACATCC_STATE_CONNECTING = 'C',
-            SEACATCC_STATE_PROXY_REQ = 'p',    // Proxy support
-            SEACATCC_STATE_PROXY_RESP = 'P',   // Proxy support
-            SEACATCC_STATE_HANDSHAKING = 'H',
-            SEACATCC_STATE_ESTABLISHED = 'E',
-            SEACATCC_STATE_CLOSING = 'c',
-
-            SEACATCC_STATE_ERROR_RETRY = 'r',
-            SEACATCC_STATE_ERROR_NETWORK = 'n',
-            SEACATCC_STATE_ERROR_FATAL = 'f',
+            NOT_INITED = '*',
+            INITED = 'i',
+            IDLING = 'D',
+            CONNECTING = 'C',
+            PROXY_REQ = 'p',    // Proxy support
+            PROXY_RESP = 'P',   // Proxy support
+            HANDSHAKING = 'H',
+            ESTABLISHED = 'E',
+            CLOSING = 'c',
+            PPK_READY = 'Y',
+            GWCONN_ANONYMOUS = 'A',
+            GWCONN_SIGNED_IN = 'N',
+            ERROR_RETRY = 'r',
+            ERROR_NETWORK = 'n',
+            ERROR_FATAL = 'f',
         }
 
-        static public int RC_OK = (0);
-        static public int RC_E_GENERIC = (-9999);
+        public enum SeacatYields {
+            CONNECT = 'c',
+            DISCONNECT = 'd',
+            RENEW_CERT = 'n',
+            RECOVER_FATAL = 'f',
+            NETWORK_REACHABLE = 'Q',
+            DATA_TO_SEND = 'W'
+        }
+        
+        static public int RC_OK = 0;
+        static public int RC_E_GENERIC = -9999;
 
         public static void CheckAndThrowIOException(String message, int rc) {
             if (rc != RC_OK) throw new IOException($"SeaCat return code {rc} in {message}");
@@ -39,16 +50,22 @@ namespace SeaCatCSharpClient.Utils {
         public static string TranslateState(string state) {
             var builder = new StringBuilder();
             foreach (char st in state) {
-                try {
+                if (Enum.IsDefined(typeof(SeacatState), (SeacatState)st)) {
                     SeacatState seacatState = (SeacatState)st;
                     string stringValue = seacatState.ToString();
                     builder.Append(stringValue);
-                    builder.Append(";");
-                } catch {
-                    // nothing to do here
+                    builder.Append("|");
                 }
             }
             return builder.ToString();
+        }
+
+        public static string TranslateYield(char yld) {
+            if (Enum.IsDefined(typeof(SeacatYields), (SeacatYields)yld)) {
+                SeacatState yldVal = (SeacatState)yld;
+                return yldVal.ToString();
+            }
+            return "???";
         }
     }
 

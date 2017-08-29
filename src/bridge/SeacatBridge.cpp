@@ -34,9 +34,7 @@ static void logMsgManaged(char level, const char* message) {
 }
 
 static void callback_write_ready(void ** data, uint16_t * data_len) {
-	logMsgManaged('M', "CALLBACK:: callback_write_ready");
-
-	assert(writeBufferDataPtr == nullptr);
+	assert(writeBuffer == nullptr);
 
 	// call the client and obtain data
 	writeBuffer = coreAPI->CallbackWriteReady();
@@ -57,9 +55,7 @@ static void callback_write_ready(void ** data, uint16_t * data_len) {
 }
 
 static void callback_read_ready(void ** data, uint16_t * data_len) {
-	logMsgManaged('M', "CALLBACK:: callback_read_ready");
-
-	assert(readBufferDataPtr == nullptr);
+	assert(readBuffer == nullptr);
 
 	// call the client and obtain data
 	readBuffer = coreAPI->CallbackReadReady();
@@ -72,8 +68,6 @@ static void callback_read_ready(void ** data, uint16_t * data_len) {
 }
 
 static void callback_frame_received(void * data, uint16_t data_len) {
-	logMsgManaged('M', "CALLBACK:: callback_frame_received");
-
 	assert(readBuffer != nullptr);
 	// pass data to client for reading
 	coreAPI->CallbackFrameReceived(readBuffer, data_len);
@@ -82,7 +76,6 @@ static void callback_frame_received(void * data, uint16_t data_len) {
 }
 
 static void callback_frame_return(void * data) {
-	logMsgManaged('M', "CALLBACK:: callback_frame_return");
 
 	// choose between read and write frame
 	if (readBuffer != nullptr && readBufferDataPtr != nullptr && data == readBufferDataPtr) {
@@ -113,24 +106,19 @@ static double callback_evloop_heartbeat(double now) {
 
 // other hooks
 static void callback_evloop_started(void) {
-	logMsgManaged('M', "CALLBACK:: callback_evloop_started");
 	coreAPI->CallbackEvloopStarted();
 }
 
 
 static void callback_gwconn_reset(void) {
-	logMsgManaged('M', "CALLBACK:: callback_gwconn_reset");
 	coreAPI->CallbackGwconnReset();
 }
 
 static void callback_gwconn_connected(void) {
-	logMsgManaged('M', "CALLBACK:: callback_gwconn_connected");
 	coreAPI->CallbackGwconnConnected();
 }
 
 static void callback_state_changed(void) {
-	logMsgManaged('M', "CALLBACK:: callback_state_changed");
-
 	// obtain the state and pass it to the client
 	char* buffer = new char[SEACATCC_STATE_BUF_SIZE];
 	seacatcc_state(buffer);
@@ -140,8 +128,6 @@ static void callback_state_changed(void) {
 }
 
 static void callback_clientid_changed(void) {
-	logMsgManaged('M', "CALLBACK:: callback_clientid_changed");
-
 	auto clientId = seacatcc_client_id();
 	auto clientTag = seacatcc_client_tag();
 	auto clientIdStr = CharToStr(clientId);
