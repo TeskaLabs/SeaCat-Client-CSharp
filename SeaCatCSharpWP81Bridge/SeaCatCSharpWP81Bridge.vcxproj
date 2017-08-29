@@ -22,7 +22,7 @@
     <ProjectGuid>{f5fa9ebe-79ee-4c95-8763-52652fa132b0}</ProjectGuid>
     <Keyword>WindowsRuntimeComponent</Keyword>
     <ProjectName>SeaCatCSharpWP81Bridge</ProjectName>
-    <RootNamespace>SeaCatCSharpWP81Bridge</RootNamespace>
+    <RootNamespace>SeaCatCSharpBridge</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>

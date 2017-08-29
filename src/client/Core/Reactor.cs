@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using seacat_winrt_bridge;
+using SeaCatCSharpBridge;
 using Windows.Storage;
 using Windows.ApplicationModel;
 using seacat_winrt_client.Utils;
@@ -14,7 +14,7 @@ using System.Net.Http;
 
 namespace seacat_winrt_client.Core {
 
-    public class Reactor : seacat_winrt_bridge.ISeacatCoreAPI {
+    public class Reactor : SeaCatCSharpBridge.ISeacatCoreAPI {
         private static string TAG = "Reactor";
         private static Reactor _instance;
 

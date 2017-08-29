@@ -2,7 +2,7 @@
 #include <collection.h>
 #include <ppltasks.h>
 
-namespace seacat_winrt_bridge
+namespace SeaCatCSharpBridge
 {
 	using namespace Platform;
 

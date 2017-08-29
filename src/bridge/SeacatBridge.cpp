@@ -10,7 +10,7 @@ extern "C" {
 #include "seacatcc.h"
 }
 
-using namespace seacat_winrt_bridge;
+using namespace SeaCatCSharpBridge;
 using namespace Platform;
 using namespace std;
 

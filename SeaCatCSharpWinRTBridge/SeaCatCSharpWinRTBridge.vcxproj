@@ -30,7 +30,7 @@
     <ProjectGuid>{1270f43d-961f-4cfd-a780-41056b54b4fc}</ProjectGuid>
     <Keyword>DynamicLibraryServer</Keyword>
     <ProjectName>SeaCatCSharpWinRTBridge</ProjectName>
-    <RootNamespace>SeaCatCSharpWinRTBridge</RootNamespace>
+    <RootNamespace>SeaCatCSharpBridge</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
