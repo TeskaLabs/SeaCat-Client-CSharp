@@ -12,3 +12,7 @@ For now, WinRT and Windows Phone 8.1 are supported.
   var responseAsync = client.GetAsync("http://jsonplaceholder.seacat/posts/1/comments");
 
 ```	
+
+## Class diagram
+
+![Class diagram](/docs/diagram.png)
