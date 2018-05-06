@@ -35,6 +35,7 @@ namespace SeaCatCSharpClient.Http {
         private bool launched = false;
         private InboundStream inboundStream;
         private OutboundStream outboundStream = null;
+        private Task outboundStreamTask = null;
         
         private int streamId = -1;
         private int priority;
@@ -77,6 +78,17 @@ namespace SeaCatCSharpClient.Http {
 
             // init inbound stream
             this.inboundStream = new InboundStream(reactor, SenderId, client.Timeout.Milliseconds);
+
+            // If request has a body, prepare outboundStream too
+            HttpContent content = request.Content;
+            if (content != null)
+            {
+                outboundStream = new OutboundStream(reactor, 1);
+                outboundStreamTask = content.CopyToAsync(outboundStream);
+                Task.Factory.StartNew(() => {
+                    Task.WaitAll(outboundStreamTask);
+                });
+            }
 
             Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} URI: {this.uri}");
 
