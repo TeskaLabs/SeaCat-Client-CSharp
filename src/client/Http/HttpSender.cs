@@ -85,9 +85,8 @@ namespace SeaCatCSharpClient.Http {
             {
                 outboundStream = new OutboundStream(reactor, 1);
                 outboundStreamTask = content.CopyToAsync(outboundStream);
-                Task.Factory.StartNew(() => {
-                    Task.WaitAll(outboundStreamTask);
-                });
+                Task.WaitAll(outboundStreamTask);
+                outboundStream.Dispose();
             }
 
             Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} URI: {this.uri}");
@@ -269,7 +268,6 @@ namespace SeaCatCSharpClient.Http {
                     int contentLength = outboundStream.ContentLength;
                     if ((contentLength > 0) && (GetRequestProperty("Content-length") == null)) {
                         // If there is an outboundStream with data, we can determine Content-Length
-                        outboundStream.Dispose();
                         requestHeaders.Set("Content-length", contentLength.ToString());
                     }
                 }
