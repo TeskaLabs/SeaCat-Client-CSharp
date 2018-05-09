@@ -134,6 +134,16 @@ namespace SeaCatCSharpClient {
             return client;
         }
 
+        public static SeacatHttpClientHandler OpenWithHandler()
+        {
+            if (!initialized)
+            {
+                throw new Exception("Seacat is not initialized!");
+            }
+            var handler = new SeacatHttpClientHandler(Reactor, 3);
+            return handler;
+        }
+
         /// <summary>
         /// Obtains the state string describing operational conditions of a SeaCat client.
         ///
