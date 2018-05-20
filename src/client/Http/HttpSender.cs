@@ -84,15 +84,19 @@ namespace SeaCatCSharpClient.Http {
             if (content != null)
             {
                 outboundStream = new OutboundStream(reactor, 1);
+                outboundStream.ContentLength = (int)content.Headers.ContentLength;
                 outboundStreamTask = content.CopyToAsync(outboundStream);
-                Task.WaitAll(outboundStreamTask);
-                outboundStream.Dispose();
+                TaskHelper.CreateTask("HTTP Outbound Task", () =>
+                {
+                    Task.WaitAll(outboundStreamTask);
+                    outboundStream.Dispose();
+                }).Start();
             }
 
             Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} URI: {this.uri}");
 
             // run in separate thread
-            var tsk = TaskHelper.CreateTask<HttpResponseMessage>("HTTP Task", () => {
+            var tsk = TaskHelper.CreateTask<HttpResponseMessage>("HTTP Inbound Task", () => {
                 // wait for response stream
                 var inputStream = GetInputStream();
 
