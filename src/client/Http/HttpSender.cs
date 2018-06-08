@@ -258,7 +258,24 @@ namespace SeaCatCSharpClient.Http {
             }
         }
 
+        public void AddHeaders(IEnumerator<KeyValuePair<string, IEnumerable<string>>> enumerator)
+        {
+            while (enumerator.MoveNext())
+            {
+                var key_value = enumerator.Current;
+                var valueEnum = key_value.Value.GetEnumerator();
+                var value = "";
+                while (valueEnum.MoveNext())
+                {
+                    value += valueEnum.Current + " ";
+                }
+                requestHeaders.Add(key_value.Key, value);
+            }
+        }
+
         public Headers GetRequestHeaders() {
+            AddHeaders(this.request.Headers.GetEnumerator());
+            AddHeaders(this.request.Content.Headers.GetEnumerator());
             lock (this) {
                 return requestHeaders.Build();
             }
