@@ -289,7 +289,7 @@ namespace SeaCatCSharpClient.Http {
                     int contentLength = outboundStream.ContentLength;
                     if ((contentLength > 0) && (GetRequestProperty("Content-length") == null)) {
                         // If there is an outboundStream with data, we can determine Content-Length
-                        requestHeaders.Set("Content-length", contentLength.ToString());
+                        requestHeaders.Set("Content-Length", contentLength.ToString());
                     }
                 }
 
