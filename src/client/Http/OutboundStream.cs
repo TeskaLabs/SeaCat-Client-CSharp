@@ -164,22 +164,28 @@ namespace SeaCatCSharpClient.Http {
         }
 
         public ByteBuffer BuildFrame(Reactor reactor, out bool keep) {
+            lock (this)
+            {
+                keep = false;
 
-            keep = false;
+                Debug.Assert(streamId > 0);
 
-            Debug.Assert(streamId > 0);
+                // get the next frame and put id of this stream into it
+                bool success;
+                ByteBuffer frame = frameQueue.Dequeue(0, out success);
+                if (success && (frame != null))
+                {
+                    frame.PutInt(0, streamId);
+                    keep = !frameQueue.IsEmpty();
 
-            // get the next frame and put id of this stream into it
-            ByteBuffer frame = frameQueue.Dequeue();
-            if (frame != null) {
-                frame.PutInt(0, streamId);
-                keep = !frameQueue.IsEmpty();
-                if ((frame.GetShort(4) & SPDY.FLAG_FIN) == SPDY.FLAG_FIN) {
-                    // never keep FIN frame
-                    Debug.Assert(!keep);
+                    if ((frame.GetByte(4) & SPDY.FLAG_FIN) == SPDY.FLAG_FIN)
+                    {
+                        // never keep FIN frame
+                        Debug.Assert(!keep);
+                    }
                 }
+                return frame;
             }
-            return frame;
         }
         
         private ByteBuffer GetCurrentFrame() {
