@@ -285,14 +285,6 @@ namespace SeaCatCSharpClient.Http {
 
         private void Launch() {
             if (!launched) {
-                if (outboundStream != null) {
-                    int contentLength = outboundStream.ContentLength;
-                    if ((contentLength > 0) && (GetRequestProperty("Content-length") == null)) {
-                        // If there is an outboundStream with data, we can determine Content-Length
-                        requestHeaders.Set("Content-Length", contentLength.ToString());
-                    }
-                }
-
                 launched = true;
                 Logger.Debug(SeaCatInternals.HTTPTAG, $"H:{SenderId} Launched");
                 reactor.RegisterFrameProvider(this, true);
