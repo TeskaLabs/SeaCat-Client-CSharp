@@ -274,9 +274,9 @@ namespace SeaCatCSharpClient.Http {
         }
 
         public Headers GetRequestHeaders() {
-            AddHeaders(this.request.Headers.GetEnumerator());
-            AddHeaders(this.request.Content.Headers.GetEnumerator());
             lock (this) {
+                AddHeaders(this.request.Headers.GetEnumerator());
+                AddHeaders(this.request.Content.Headers.GetEnumerator());
                 return requestHeaders.Build();
             }
         }
